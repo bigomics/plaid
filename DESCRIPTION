@@ -1,6 +1,6 @@
 Package: plaid
 Title: Pathway Level Average Intensity Detection
-Version: 0.1.0
+Version: 0.1.0.9001
 Authors@R: c(
     person("Ivo", "Kwee", , "ivo.kwee@bigomics.ch", role = "cre",
            comment = c(ORCID = "0000-0002-2751-4218")),
@@ -15,6 +15,8 @@ Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.2
 Suggests: 
+    knitr,
+    rmarkdown,
     testthat (>= 3.0.0)
 Config/testthat/edition: 3
 Imports: 
@@ -22,3 +24,4 @@ Imports:
     metap,
     Rfast,
     sparseMatrixStats
+VignetteBuilder: knitr

@@ -1,4 +1,0 @@
-
-load_all()
-
-check()

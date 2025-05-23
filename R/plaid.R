@@ -11,9 +11,9 @@
 #' @param use.cov Logical for whether using a scaled model matrix of the full pairs
 #' 
 #' @examples# Load the example dataset provided and run:
-#' gmt <- read.gmt("hallmark.gmt")
-#' matG <- gmt2mat(gmt)
-#' gsetX <- plaid(X, matG)
+#' #gmt <- read.gmt("hallmark.gmt")
+#' #matG <- gmt2mat(gmt)
+#' #gsetX <- plaid(X, matG)
 #'
 #' @export
 plaid <- function(X, matG, stats="mean", chunk=NULL, as_matrix=TRUE) {
@@ -65,74 +65,105 @@ chunked_crossprod <- function(x, y, chunk=NULL) {
 plaid.limma <- function(X, y, matG) {
   gsetX <- plaid(X, matG, as_matrix=TRUE)
   gsetX <- normalize_medians(gsetX, ignore.zero=NULL)   
-  gx.limma(gsetX, y, fdr=1, lfc=0, sort.by='none')
+  res <- gx.limma(gsetX, y, fdr=1, lfc=0, sort.by='none')
+  res
 }
 
 #' @export
 plaid.ttest <- function(X, y, matG) {
   gsetX <- plaid(X, matG, as_matrix=TRUE)
   gsetX <- normalize_medians(gsetX, ignore.zero=NULL)
-  Rfast::ttests(gsetX, ina=y)
+  res <- Rfast::ttests( Matrix::t(gsetX), ina=y+1)
+  m1 <- rowMeans(gsetX[,y==1],na.rm=TRUE)
+  m0 <- rowMeans(gsetX[,y==0],na.rm=TRUE)
+  padj <- p.adjust(res[,"pvalue"], method="fdr")
+  fc <- m1 - m0
+  avg <- rowMeans(gsetX)
+  df <- data.frame(logFC=fc, AveExpr=avg, t=res[,"stat"],
+    P.Value = res[,"pvalue"], adj.P.Val = padj,
+    AveExpr.0 = m0, AveExpr.1 = m1)
+  df
 }
 
 #'
 #'
 #' @export
-plaid.test <- function(X, y, gmt, gsetX=NULL, normalize=FALSE,
+plaid.test <- function(X, y, G, gsetX=NULL, normalize=FALSE,
                        tests = c("one","two","lm") ) {
   if(!all(unique(y) %in% c(0,1))) stop("elements of y must be 0 or 1")
-  if(class(gmt)=="list") gmt <- gmt2mat(gmt)
-  p1=p2=p3=NULL
-  diff=NULL
-  if(any( c("one","two") %in% tests)) {
-    m1 <- Matrix::rowMeans(X[,y==1,drop=FALSE])
-    m0 <- Matrix::rowMeans(X[,y==0,drop=FALSE])
-    fc <- m1 - m0
+  if(is.list(G)) {
+    message("[plaid.test] converting gmt to sparse matrix...")
+    G <- gmt2mat(G)
+  } else {
+    message("[plaid.test] sparse matrix provided")
   }
+  p1=p2=p3=NULL
+  df1=df2=df3=NULL
+  gg <- intersect(rownames(G),rownames(X))
+  X <- X[gg,]
+  G <- G[gg,]
+  
+  m1 <- Matrix::rowMeans(X[,y==1,drop=FALSE])
+  m0 <- Matrix::rowMeans(X[,y==0,drop=FALSE])
+  fc <- m1 - m0
+  
   if("one" %in% tests) {
-    mt1 <- matrix_ttest(fc, gmt, method="one")
+    mt1 <- matrix_ttest(fc, G, method="one")
     p1 <- mt1$pvalue[,1]
-    diff <- mt1$diff[,1]
+    df1 <- mt1$diff[,1]
   }
   if("two" %in% tests) {
-    mt2 <- matrix_ttest(fc, gmt, method="two")
+    mt2 <- matrix_ttest(fc, G, method="two")
     p2 <- mt2$pvalue[,1]
-    diff <- mt2$diff[,1]        
+    df2 <- mt2$diff[,1]        
   }
   if("lm" %in% tests) {
-    if(is.null(gsetX)) {
-      gsetX <- plaid(X, gmt, as_matrix=TRUE)
+    if(is.null(gsetX)) {      
+      message("[plaid.test] computing plaid scores...")
+      gsetX <- plaid(X, G, as_matrix=TRUE)
     }
     if(normalize) gsetX <- normalize_medians(gsetX, ignore.zero=NULL) 
-    lm <- gx.limma(gsetX, y, fdr=1, lfc=0, sort.by='none')
-#    lm <- try(Rfast::ttests(gsetX, ina=y),silent=TRUE)    
-    p3 <- lm[,"P.Value"]
-    diff <- lm[,"logFC"]
-    names(p3) <- rownames(lm)
-    names(diff) <- rownames(lm)
+    message("[plaid.test] computing t-tests...")
+    res.lm  <- Rfast::ttests( Matrix::t(gsetX), ina=y+1)
+    p3 <- res.lm[,"pvalue"]
+    df3 <- rowMeans(gsetX[,y==1]) - rowMeans(gsetX[,y==0])
+    names(p3) <- rownames(gsetX)
+    names(df3) <- rownames(gsetX)
   }
-  pvalues <- list("one"=p1,"two"=p2,"lm"=p3)
-  pvalues <- pvalues[!sapply(pvalues,is.null)]
-  gg <- Reduce(intersect, lapply(pvalues, names))
-  diff <- diff[gg]
-  pvalues <- lapply(pvalues, function(x) x[gg])
-  pvalues <- do.call( cbind, pvalues)
-  pvalues[is.na(pvalues)] <- 1
-  if(NCOL(pvalues)>1) {
-    pmeta <- apply(pvalues, 1, function(x) metap::sumz(x)$p)
+  
+  P <- list("one"=p1,"two"=p2,"lm"=p3)
+  P <- P[!sapply(P,is.null)]
+  F <- list("one"=df1,"two"=df2,"lm"=df3)
+  F <- F[!sapply(F,is.null)]
+  
+  gg <- Reduce(intersect, lapply(P, names))
+  P <- lapply(P, function(x) x[gg])
+  F <- lapply(F, function(x) x[gg])
+  P <- do.call( cbind, P)
+  F <- do.call( cbind, F)
+  P[is.na(P)] <- 1
+  ##F[is.na(F)] <- 0
+  gsetFC <- rowMeans(F)
+  
+  if(NCOL(P)>1) {
+    pmeta <- apply(P, 1, function(x) metap::sumz(x)$p)
   } else {
-    pmeta <- pvalues[,1]
+    pmeta <- P[,1]
   }
-  colnames(pvalues) <- paste0("p.",colnames(pvalues))
+  colnames(P) <- paste0("p.",colnames(P))
   res <- cbind(
-    gsetFC = diff,
-    pvalues,
+    gsetFC = gsetFC,
+    pvalues = P,
     p.meta = pmeta
   )
   res <- res[order(res[,"p.meta"]),]
   res
 }
 
+
+#'
+#'
+#' @export
 replaid.scse <- function(X, matG, removeLog2=NULL, scoreMean=FALSE) {
   if(is.null(removeLog2)) {
     removeLog2 <- min(X,na.rm=TRUE)==0 && max(X,na.rm=TRUE) < 20
@@ -161,8 +192,11 @@ replaid.scse <- function(X, matG, removeLog2=NULL, scoreMean=FALSE) {
   as.matrix(sX)
 }
 
+#'
+#'
+#' @export
 replaid.sing <- function(X, matG) {
-  X <- as(X, "CsparseMatrix")
+  X <- methods::as(X, "CsparseMatrix")
   ## the ties.method=min is important for exact replication
   rX <- Matrix::t(sparseMatrixStats::colRanks(X, ties.method="min"))  
   rX <- rX / nrow(X) - 0.5
@@ -201,41 +235,29 @@ matrix_ttest <- function(F, G, method="two") {
   list(diff = f_matrix, stats = t_matrix, pvalue=p_matrix)
 }
 
+#' @export
 normalize_medians <- function(x, ignore.zero=NULL) {
   if(is.null(ignore.zero)) {
     ignore.zero <- (min(x,na.rm=TRUE)==0)
   }
   if(ignore.zero) {
-    medx <- apply(x,2,function(y) median(y[y!=0],na.rm=TRUE))
-    med0 <- median(x[x!=0],na.rm=TRUE)
+    medx <- apply(x,2,function(y) stats::median(y[y!=0],na.rm=TRUE))
+    med0 <- stats::median(x[x!=0],na.rm=TRUE)
   } else {
-    medx <- apply(x,2,median,na.rm=TRUE)
-    med0 <- median(x,na.rm=TRUE)
+    medx <- apply(x,2, stats::median,na.rm=TRUE)
+    med0 <- stats::median(x,na.rm=TRUE)
   }  
   t(t(x) - medx) + med0
 }
 
-normalize_means <- function(x, ignore.zero=NULL) {
-  if(is.null(ignore.zero)) {
-    ignore.zero <- (min(x,na.rm=TRUE)==0)
-  }
-  if(ignore.zero) {
-    medx <- apply(x,2,function(y) mean(y[y!=0],na.rm=TRUE))
-    med0 <- mean(x[x!=0],na.rm=TRUE)
-  } else {
-    medx <- apply(x,2,mean,na.rm=TRUE)
-    med0 <- mean(x,na.rm=TRUE)
-  }  
-  t(t(x) - medx) + med0
-}
-
+#' @export
 colranks <- function(X, sparse=NULL, signed=FALSE, keep.zero=FALSE,
                      ties.method = "average") {
   if(is.null(sparse)) {
     sparse <- inherits(X,"CsparseMatrix")
   }
   if(sparse) {
-    X <- as(X, "CsparseMatrix")
+    X <- methods::as(X, "CsparseMatrix")
     if(keep.zero) {
       rX <- sparse_colranks(X, signed=signed, ties.method=ties.method)
     } else {
@@ -259,10 +281,9 @@ colranks <- function(X, sparse=NULL, signed=FALSE, keep.zero=FALSE,
   rX
 }
 
-#' Test if rows or columns of sparse matrix are duplicated
 sparse_colranks <- function(X, signed=FALSE, ties.method="average") {
   ## https://stackoverflow.com/questions/41772943
-  X <- as(X, "CsparseMatrix")
+  X <- methods::as(X, "CsparseMatrix")
   n <- diff(X@p)  ## number of non-zeros per column
   lst <- split(X@x, rep.int(1:ncol(X), n))  ## columns to list
   ## column-wise ranking and result collapsing
@@ -276,97 +297,6 @@ sparse_colranks <- function(X, signed=FALSE, ties.method="average") {
   rX <- X  ## copy sparse matrix
   rX@x <- rnk  ## replace non-zero elements with rank
   rX
-}
-
-#' Convert GMT file to binary matrix
-#'
-#' This function converts a GMT file (Gene Matrix Transposed) to a binary matrix,
-#' where rows represent genes and columns represent gene sets. The binary matrix
-#' indicates the presence or absence of genes in each gene set.
-#'
-#' @param gmt A list representing the GMT file, where each element is a character
-#'            vector representing a gene set.
-#' @param max.genes The maximum number of genes to include in the binary matrix.
-#'                  Defaults to -1, which includes all genes.
-#' @param ntop The number of top genes to consider for each gene set. Defaults to -1,
-#'             which includes all genes.
-#' @param sparse A logical value indicating whether to create a sparse matrix
-#'               (from the 'Matrix' package) or a dense matrix. Defaults to `TRUE`.
-#' @param bg A character vector representing the background set of genes. Defaults to `NULL`,
-#'           which considers all unique genes from the gene sets.
-#' @param use.multicore A logical value indicating whether to use parallel processing
-#'                     (via the 'parallel' package) for faster execution. Defaults to `TRUE`.
-#'
-#' @export
-#'
-#' @return A binary matrix representing the presence or absence of genes in each gene set.
-#'         Rows correspond to genes, and columns correspond to gene sets.
-#'
-gmt2mat <- function(gmt, max.genes = -1, ntop = -1, sparse = TRUE,
-                    bg = NULL, use.multicore = TRUE) {
-  gmt <- gmt[order(-sapply(gmt, length))]
-  gmt <- gmt[!duplicated(names(gmt))]
-  if (ntop > 0) {
-    gmt <- lapply(gmt, utils::head, n = ntop)
-  }
-  if (is.null(names(gmt))) names(gmt) <- paste("gmt.", 1:length(gmt), sep = "")
-  if (is.null(bg)) {
-    bg <- names(sort(table(unlist(gmt)), decreasing = TRUE))
-  }
-  if (max.genes < 0) max.genes <- length(bg)
-  gg <- bg
-  gg <- Matrix::head(bg, n = max.genes)
-  gmt <- lapply(gmt, function(s) intersect(gg, s))
-  kk <- unique(names(gmt))
-  if (sparse) {
-    D <- Matrix::Matrix(0, nrow = length(gg), ncol = length(kk), sparse = TRUE)
-  } else {
-    D <- matrix(0, nrow = length(gg), ncol = length(kk))
-  }
-
-  rownames(D) <- gg
-  colnames(D) <- kk
-  j <- 1
-  if (use.multicore) {
-    idx <- lapply(gmt, function(s) match(s, gg))
-    idx[sapply(idx, length) == 0] <- 0
-    idx <- sapply(1:length(idx), function(i) rbind(idx[[i]], i))
-    idx <- matrix(unlist(idx[]), byrow = TRUE, ncol = 2)
-    idx <- idx[!is.na(idx[, 1]), ]
-    idx <- idx[idx[, 1] > 0, ]
-    D[idx] <- 1
-  } else {
-    for (j in 1:ncol(D)) {
-      k0 <- match(kk[j], names(gmt))
-      ii0 <- which(gg %in% gmt[[k0]])
-      if (length(ii0) > 0) D[ii0, j] <- +1
-    }
-  }
-  D <- D[order(-Matrix::rowSums(D != 0, na.rm = TRUE)), ]
-  D
-}
-
-#' Convert binary matrix back to GMT list
-#'
-#' This function converts binary matrix to a GMT (Gene Matrix
-#' Transposed) list, The binary matrix indicates the presence or
-#' absence of genes in each gene set, where rows represent genes and
-#' columns represent gene sets.
-#'
-#' @param mat A matrix with non-zero entries representing genes in
-#'   each gene set where rows represent genes and columns represent
-#'   gene sets.
-#'
-#' @export
-#'
-#' @return A list of vector representing each gene set. Each list
-#'   element correspond to a gene set and is a vector of genes
-#'
-mat2gmt <- function(mat) {
-  idx <- Matrix::which(mat != 0, arr.ind = TRUE)
-  gmt <- tapply(rownames(idx), idx[, 2], list)
-  names(gmt) <- colnames(mat)[as.integer(names(gmt))]
-  gmt
 }
 
 ##-------------------------------------------------------------

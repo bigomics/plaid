@@ -1,4 +1,4 @@
-# PLAID: Pathway Level Average Intensity Detection
+# PLAID
 
 Plaid (Pathway Level Average Intensity Detection) is an ultra-fast
 method to compute single-sample enrichment scores for gene expression
@@ -6,7 +6,7 @@ or proteomics data. For each sample, plaid computes the gene set score
 as the average intensity of the genes/proteins in the gene set. The
 output is a gene set score matrix suitable for further analyses.
 
-Plaid is freely available on GitHub. It's a main batch correction
+Plaid is freely available on GitHub. It's a main gene sets scoring
 algorithm in OmicsPlayground, our Bioinformatics platform at BigOmics
 Analytics. In OmicsPlayground, you can perform Plaid without coding
 needs.
@@ -33,26 +33,31 @@ appear evident with samples clustering by treatment. Following Plaid
 batch correction, the samples cluster by DLBCL type, reflecting their
 biological heterogeneity.
 
-``` r
-# Load Plaid 
+```r
 library("plaid")
 
-## X: raw data matrix, with features in rows and samples in columns.
-## Meta: matrix or dataframe with the metadata associated with X. 
-## We need to ensure that the samples in X and Meta are aligned.
-X <- read.table("./data/GSE10846.Expression.txt", sep="\t")
+library(Seurat)
+library(SeuratData)
+data("pbmc3k.final")
+pbmc3k.final <- Seurat::UpdateSeuratObject(pbmc3k.final)
+X <- pbmc3k.final[['RNA']]@data
+dim(X)
 
-gmt <- read.gmt("hallmark.gmt")
+hallmarks <- system.file("extdata", "hallmarks.gmt", package = "plaid")
+gmt <- read.gmt(hallmarks)
 matG <- gmt2mat(gmt)
+dim(matG)
 
 ## run plaid
 gsetX <- plaid(X, matG)
+dim(gsetX)
 
 ## Batch correction with Plaid
 gsetX <- normalize_medians(gsetX)
 
-y <- sample(1:2, ncol(X))
-res <- rowttest(gsetX, y)
+celltype <- pbmc3k.final$seurat_annotations
+y <- (celltype == "B")
+res <- plaid.test(gsetX, y, matG, gsetX=gsetX)
 ```
 
 ## Support

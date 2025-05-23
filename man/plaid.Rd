@@ -18,8 +18,8 @@ matrix matG.
 }
 \examples{
 # Load the example dataset provided and run:
-gmt <- read.gmt("hallmark.gmt")
-matG <- gmt2mat(gmt)
-gsetX <- plaid(X, matG)
+#gmt <- read.gmt("hallmark.gmt")
+#matG <- gmt2mat(gmt)
+#gsetX <- plaid(X, matG)
 
 }

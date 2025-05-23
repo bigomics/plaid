@@ -1,0 +1,57 @@
+---
+title: "plaid"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{plaid}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+# Example: Single-cell RNA-seq hallmark scoring
+
+## Preparing data
+
+```{r}
+library("plaid")
+library(Seurat)
+library(SeuratData)
+data("pbmc3k.final")
+pbmc3k.final <- Seurat::UpdateSeuratObject(pbmc3k.final)
+X <- pbmc3k.final[['RNA']]@data
+dim(X)
+
+hallmarks <- system.file("extdata", "hallmarks.gmt", package = "plaid")
+gmt <- read.gmt(hallmarks)
+matG <- gmt2mat(gmt)
+dim(matG)
+```
+
+## Calculating the score
+
+```{r}
+## run plaid
+gsetX <- plaid(X, matG)
+dim(gsetX)
+```
+
+## Performing a differential expression test
+
+```{r}
+## Batch correction with Plaid
+gsetX <- normalize_medians(gsetX)
+
+celltype <- pbmc3k.final$seurat_annotations
+y <- (celltype == "B")
+res <- plaid.test(gsetX, y, matG, gsetX=gsetX)
+
+```
+
+
+

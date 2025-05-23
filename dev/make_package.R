@@ -11,8 +11,7 @@ use_git()
 use_r("plaid")
 use_gpl3_license()
 
-check()
-install()
+usethis::use_vignette("plaid")
 
 use_testthat()
 use_test("plaid")
@@ -23,8 +22,10 @@ use_package("Rfast")
 use_package("sparseMatrixStats")
 use_package("metap")
 
-use_readme_rmd()
+use_readme_md()
 
+check()
+install()
 
 ## Reload
 load_all()
