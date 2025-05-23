@@ -1,0 +1,4 @@
+
+load_all()
+
+check()
