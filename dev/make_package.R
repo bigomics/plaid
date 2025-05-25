@@ -1,4 +1,4 @@
-## Follow steps of "R Packages" book
+## Followings steps of "R Packages" book
 ##
 
 library(usethis)
@@ -19,8 +19,13 @@ use_test("plaid")
 ## List package dependencies
 use_package("Matrix")
 use_package("Rfast")
+use_package("matrixStats")
 use_package("sparseMatrixStats")
 use_package("metap")
+
+## For vignette
+#use_package("Seurat", type = "Suggests")
+#use_package("SeuratData", type = "Suggests")
 
 use_readme_md()
 

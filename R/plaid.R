@@ -65,7 +65,7 @@ chunked_crossprod <- function(x, y, chunk=NULL) {
 plaid.limma <- function(X, y, matG) {
   gsetX <- plaid(X, matG, as_matrix=TRUE)
   gsetX <- normalize_medians(gsetX, ignore.zero=NULL)   
-  res <- gx.limma(gsetX, y, fdr=1, lfc=0, sort.by='none')
+  res <- playbase::gx.limma(gsetX, y, fdr=1, lfc=0, sort.by='none')
   res
 }
 
@@ -76,7 +76,7 @@ plaid.ttest <- function(X, y, matG) {
   res <- Rfast::ttests( Matrix::t(gsetX), ina=y+1)
   m1 <- rowMeans(gsetX[,y==1],na.rm=TRUE)
   m0 <- rowMeans(gsetX[,y==0],na.rm=TRUE)
-  padj <- p.adjust(res[,"pvalue"], method="fdr")
+  padj <- stats::p.adjust(res[,"pvalue"], method="fdr")
   fc <- m1 - m0
   avg <- rowMeans(gsetX)
   df <- data.frame(logFC=fc, AveExpr=avg, t=res[,"stat"],
@@ -89,7 +89,7 @@ plaid.ttest <- function(X, y, matG) {
 #'
 #' @export
 plaid.test <- function(X, y, G, gsetX=NULL, normalize=FALSE,
-                       tests = c("one","two","lm") ) {
+                       tests = c("one","lm") ) {
   if(!all(unique(y) %in% c(0,1))) stop("elements of y must be 0 or 1")
   if(is.list(G)) {
     message("[plaid.test] converting gmt to sparse matrix...")
@@ -151,10 +151,12 @@ plaid.test <- function(X, y, G, gsetX=NULL, normalize=FALSE,
     pmeta <- P[,1]
   }
   colnames(P) <- paste0("p.",colnames(P))
+  qmeta <- stats::p.adjust(pmeta, method="fdr")
   res <- cbind(
     gsetFC = gsetFC,
     pvalues = P,
-    p.meta = pmeta
+    p.meta = pmeta,
+    q.meta = qmeta    
   )
   res <- res[order(res[,"p.meta"]),]
   res

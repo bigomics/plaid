@@ -1,4 +1,5 @@
-library("plaid")
+##library("plaid")
+library(devtools)
 load_all()
 
 library(Seurat)
@@ -7,6 +8,9 @@ data("pbmc3k.final")
 pbmc3k.final <- Seurat::UpdateSeuratObject(pbmc3k.final)
 X <- pbmc3k.final[['RNA']]@data
 dim(X)
+
+
+
 
 gmt <- read.gmt(system.file("extdata", "hallmarks.gmt", package = "plaid"))
 gmt <- read.gmt("~/Playground/data/gmt/c5.all.v6.1.symbols.gmt")
@@ -40,5 +44,4 @@ head(res.fgsea)
 nes <- res.fgsea$NES
 p.nes <- res.fgsea$pval
 names(nes)=names(p.nes)=res.fgsea$pathway
-
 

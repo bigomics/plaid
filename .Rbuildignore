@@ -1,5 +1,7 @@
 ^vignettes/articles$
-^dev
-^LICENSE\.md$
+^LICENSE$
 ^README\.Rmd$
-^.#.*
+^Makefile$
+^dev$
+^[.].*$
+^.*/[.].*$
