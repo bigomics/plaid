@@ -12,26 +12,32 @@ Analytics. In OmicsPlayground, you can perform Plaid without coding
 needs.
 
 ## Installation
+
 You can install the Plaid R package with the following steps:
 1. Download Plaid from https://github.com/bigomics/plaid or use "git
    clone" in the command line;
 2. Enter the directory where Plaid has been downloaded;
 3. In your terminal, type: "R CMD INSTALL plaid" to install Plaid.
 
+You can also install plaid from R using devtools with the following
+command:
+
+```r
+devtools::install_github('bigomics/plaid')
+```
+
 ## Usage example
 
-We provide a basic example on how to use Plaid to correct batch
-effects (BEs) in a biological dataset.  We use the GSE10846 dataset
-(Lenz et al., 2008), which includes array gene expression profiling
-data from diffuse large B-cell lymphoma (DLBCL) samples from patients
-pre-treated with the pharmacological regimens CHOP and
-Rituximab-CHOP. Dataset includes two biological types of DLBCL: ABC
-and GCB. Because treatment was performed prior to expression profiling
-and samples were split in the two treatment groups, "treatment"
-represents a batch variable. We show that BEs in the uncorrected data
-appear evident with samples clustering by treatment. Following Plaid
-batch correction, the samples cluster by DLBCL type, reflecting their
-biological heterogeneity.
+We provide a basic example on how to use Plaid. This example uses the
+pbmc3k dataset from Seurat which is a dataset of 2,700 single cells of
+Peripheral Blood Mononuclear Cells (PBMC) that were sequenced on the
+Illumina NextSeq 500. For the gene sets, as example, we included the
+hallmarks genesets from MSigDB.
+
+However, we invite you to use your own bigger datasets and download
+bigger gene set collections as this shows the speed advantage of
+plaid. Subsequently, we show how the single-sample scores can be used
+for differential enrichment testing.
 
 ```r
 library("plaid")
@@ -52,9 +58,7 @@ dim(matG)
 gsetX <- plaid(X, matG)
 dim(gsetX)
 
-## Batch correction with Plaid
-gsetX <- normalize_medians(gsetX)
-
+## differential enrichment testing
 celltype <- pbmc3k.final$seurat_annotations
 y <- (celltype == "B")
 res <- plaid.test(gsetX, y, matG, gsetX=gsetX)
@@ -63,7 +67,4 @@ res <- plaid.test(gsetX, y, matG, gsetX=gsetX)
 ## Support
 
 For support feel free to reach our Bioinformatics Data Science Team at
-BigOmics Analytics:
-
-- Antonino Zito, PhD:  antonino.zito@bigomics.ch
-- Ivo Kwee, PhD: ivo.kwee@bigomics.ch
+BigOmics Analytics: help@bigomics.ch
