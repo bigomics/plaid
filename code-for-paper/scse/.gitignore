@@ -1,0 +1,10 @@
+# scSE datra directories
+/data/
+/databases/
+/results/
+
+# Backup files
+*~
+*.BAK
+*.save
+\#*

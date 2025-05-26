@@ -137,7 +137,9 @@ run.SCSE <- function(X, gmt, removeLog2=NULL, scoreMean=TRUE, path='scse') {
   json <- gsub("  \\}","}",json)
   json <- gsub("  \\\"","\\\"",json)      
   write(json, file=file.path(path,"conf.json"))
-  system(paste("(cd",path,"&&",bin.exe,")"), ignore.stdout=TRUE, ignore.stderr=TRUE )
+  cmd <- paste0("(cd ",path," && ./",bin.exe,")")
+  message("[run.SCSE] cmd = ",cmd)
+  system(cmd, ignore.stdout=TRUE, ignore.stderr=TRUE )
   fn <- file.path(results.dir,"000_matrix.csv")
   if(!file.exists(fn)) {
     message("Error: failed computation")    
@@ -149,8 +151,8 @@ run.SCSE <- function(X, gmt, removeLog2=NULL, scoreMean=TRUE, path='scse') {
   # note: some genesets can be missing if expression is totally zero
   ii <- match(names(gmt), rownames(gsetX))
   jj <- match(colnames(X), colnames(gsetX))  
-  if(any(is.na(ii))) message("Warning: missing genesets in matrix")
-  if(any(is.na(jj))) message("Warning: missing samples in matrix")  
+  if(any(is.na(ii))) message("Warning: some missing genesets in matrix")
+  if(any(is.na(jj))) message("Warning: some missing samples in matrix")  
   gsetX <- gsetX[ii,jj]
   gsetX[is.na(gsetX)] <- 0
   rownames(gsetX) <- names(gmt)
