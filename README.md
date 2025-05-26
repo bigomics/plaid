@@ -61,7 +61,8 @@ dim(gsetX)
 ## differential enrichment testing
 celltype <- pbmc3k.final$seurat_annotations
 y <- (celltype == "B")
-res <- plaid.test(gsetX, y, matG, gsetX=gsetX)
+res <- plaid.test(X, y, matG, gsetX=gsetX)
+head(res)
 ```
 
 ## Support
