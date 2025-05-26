@@ -4,16 +4,75 @@
 ##
 
 
-#' Compute geneset expression as the average log-ration of genes in
-#' the geneset. Requires log-expression matrix X and (sparse) geneset
-#' matrix matG.
+#' Compute plaid single-sample enrichment score 
+#'
+#' @description Compute single-sample geneset expression as the
+#'   average log-ratio of genes in the geneset. Requires
+#'   log-expression matrix X and (sparse) geneset matrix matG. If you
+#'   have gene sets as a gmt list, please convert it first using the
+#'   function `gmt2mat()`.
+#'
+#' @details Plaid needs the gene sets as sparse matrix. If you have
+#'   your collection of gene sets a a list, we need first to convert
+#'   the gmt list to matrix format.
 #' 
-#' @param use.cov Logical for whether using a scaled model matrix of the full pairs
+#' We recommend to run Plaid on the log transformed expression matrix,
+#' not on the counts, as the average in the logarithmic space is more
+#' robust and is in concordance to calculating the geometric mean.
+#'
+#' It is not necessary to normalize your expression matrix before
+#' running plaid because plaid normalizes the enrichment scores
+#' afterwards. However, again, log transformation is recommended.
+#'
+#' It is recommended to keep the expression matrix sparse as much as
+#' possible because plaid extensively take advantage of sparse matrix
+#' computations. But even for dense matrices plaid is fast.
+#'
+#' Notice that by default plaid performs median normalization of the
+#' final results. That also means that it is not necessary to
+#' normalize your expression matrix before running plaid. However,
+#' generally, log transformation is recommended.
+#'
+#' Plaid can also be run on the ranked matrix, we will see later that
+#' this corresponds to the singscore (Fouratan et al., 2018). Or plaid
+#' could be run on the (non-logarithmic) counts which can be used to
+#' calculate the scSE score (Pont et al., 2019).
+#'
+#' Plaid is fast and memery efficient because it uses very efficient
+#' sparse matrix computation in the back. For very large `X`, plaid
+#' uses chunked computation by splitting the matrix in chunks to avoid
+#' index overflow. Should you encounter errors, please compute your
+#' dataset by subsetting manually the expression matrix and/or gene
+#' sets.
+#'
+#' Although `X` and `matG` are generally very sparse, be aware that
+#' the result matrix `gsetX` generally is dense and therefore can
+#' become very large. If you would want to compute the score of 10.000
+#' gene sets on a million of cells this would create a large 10.000 x
+#' 1.000.000 dense matrix which requires about 75GB of memory.
+#'
 #' 
-#' @examples# Load the example dataset provided and run:
-#' #gmt <- read.gmt("hallmark.gmt")
-#' #matG <- gmt2mat(gmt)
-#' #gsetX <- plaid(X, matG)
+#' @param X Gene or protein expression matrix. Generally log
+#'   transformed. See details. Genes on rows, samples on columns.
+#' @param matG Gene sets sparse matrix. Genes on rows, gene sets on
+#'   columns.
+#' @param stats Score computation as mean or sum of intensity (default
+#'   'mean').
+#' @param chunk Logical for whether using chunks for large matrices
+#'   (default NULL for autodetect).
+#' @param normalize Logical for whether to median normalize results or
+#'   not (default TRUE).
+#'
+#' @return Matrix containing single-sample enrichment scores. Gene
+#'   sets on rows, samples on columns.
+#' 
+#' @examples
+#' library(plaid)
+#' load(system.file("extdata", "pbmc3k-50cells.rda", package = "plaid"))
+#' hallmarks <- system.file("extdata", "hallmarks.gmt", package = "plaid")
+#' gmt <- read.gmt(hallmarks)
+#' matG <- gmt2mat(gmt)
+#' gsetX <- plaid(X, matG)
 #'
 #' @export
 plaid <- function(X, matG, stats="mean", chunk=NULL, normalize=TRUE) {
@@ -165,7 +224,34 @@ plaid.test <- function(X, y, G, gsetX=NULL, normalize=FALSE,
 }
 
 
+#' Fast calculation of scSE score
 #'
+#' @description Calculates Single-Cell Signature Explorer (Pont et
+#'   al., 2019) scores using plaid back-end. The computation is
+#'   10-100x faster than the original code.
+#'
+#' @details Computing the scSE requires running plaid on the linear
+#'   (not logarithmic) score and perform additional normalization by
+#'   the total UMI per sample. We have wrapped this in a single
+#'   convenience function:
+#'
+#' To replicate the original "sum-of-UMI" scSE score, set `removeLog2=TRUE`
+#' and `scoreMean=FALSE`. scSE and plaid scores become more similar for
+#' `removeLog2=FALSE` and `scoreMean=TRUE`.
+#'
+#' We have extensively compared the results from `replaid.scse` and
+#' from the original scSE (implemented in GO lang) and we showed
+#' almost identical results in the score, logFC and p-values.
+#' 
+#' 
+#' @param X Gene or protein expression matrix. Generally log
+#'   transformed. See details. Genes on rows, samples on columns.
+#' @param matG Gene sets sparse matrix. Genes on rows, gene sets on
+#'   columns.
+#' @param removeLog2 Logical for whether to remove the Log2, i.e. will
+#'   apply power transform (base2) on input (default TRUE).
+#' @param scoreMean Logical for whether computing sum or mean as score
+#'   (default FALSE).
 #'
 #' @export
 replaid.scse <- function(X, matG, removeLog2=NULL, scoreMean=FALSE) {
@@ -196,8 +282,30 @@ replaid.scse <- function(X, matG, removeLog2=NULL, scoreMean=FALSE) {
   as.matrix(sX)
 }
 
+
+#' Fast calculation of singscore
 #'
+#' @description Calculates single-sample enrichment singscore
+#'   (Fouratan et al., 2018) using plaid back-end. The computation is
+#'   10-100x faster than the original code.
 #'
+#' @details Computing the singscore requires to compute the ranks of
+#'   the expression matrix. We have wrapped this in a single
+#'   convenience function.
+#'
+#' We have extensively compared the results of `replaid.sing` and from
+#' the original `singscore` R package and we showed identical result
+#' in the score, logFC and p-values.
+#' 
+#' @param X Gene or protein expression matrix. Generally log
+#'   transformed. See details. Genes on rows, samples on columns.
+#' @param matG Gene sets sparse matrix. Genes on rows, gene sets on
+#'   columns.
+#' @param removeLog2 Logical for whether to remove the Log2, i.e. will
+#'   apply power transform (base2) on input (default TRUE).
+#' @param scoreMean Logical for whether computing sum or mean as score
+#'   (default FALSE).
+#' 
 #' @export
 replaid.sing <- function(X, matG) {
   X <- methods::as(X, "CsparseMatrix")

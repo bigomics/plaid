@@ -48,8 +48,10 @@ po/*~
 # RStudio Connect folder
 rsconnect/
 
-# Backup file
+# Backup files
 *~
 *.BAK
 *.save
+\#*
 /Meta/
+/doc/

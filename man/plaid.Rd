@@ -2,24 +2,83 @@
 % Please edit documentation in R/plaid.R
 \name{plaid}
 \alias{plaid}
-\title{Compute geneset expression as the average log-ration of genes in
-the geneset. Requires log-expression matrix X and (sparse) geneset
-matrix matG.}
+\title{Compute plaid single-sample enrichment score}
 \usage{
 plaid(X, matG, stats = "mean", chunk = NULL, normalize = TRUE)
 }
 \arguments{
-\item{use.cov}{Logical for whether using a scaled model matrix of the full pairs}
+\item{X}{Gene or protein expression matrix. Generally log
+transformed. See details. Genes on rows, samples on columns.}
+
+\item{matG}{Gene sets sparse matrix. Genes on rows, gene sets on
+columns.}
+
+\item{stats}{Score computation as mean or sum of intensity (default
+'mean').}
+
+\item{chunk}{Logical for whether using chunks for large matrices
+(default NULL for autodetect).}
+
+\item{normalize}{Logical for whether to median normalize results or
+not (default TRUE).}
+}
+\value{
+Matrix containing single-sample enrichment scores. Gene
+sets on rows, samples on columns.
 }
 \description{
-Compute geneset expression as the average log-ration of genes in
-the geneset. Requires log-expression matrix X and (sparse) geneset
-matrix matG.
+Compute single-sample geneset expression as the
+average log-ratio of genes in the geneset. Requires
+log-expression matrix X and (sparse) geneset matrix matG. If you
+have gene sets as a gmt list, please convert it first using the
+function \code{gmt2mat()}.
+}
+\details{
+Plaid needs the gene sets as sparse matrix. If you have
+your collection of gene sets a a list, we need first to convert
+the gmt list to matrix format.
+
+We recommend to run Plaid on the log transformed expression matrix,
+not on the counts, as the average in the logarithmic space is more
+robust and is in concordance to calculating the geometric mean.
+
+It is not necessary to normalize your expression matrix before
+running plaid because plaid normalizes the enrichment scores
+afterwards. However, again, log transformation is recommended.
+
+It is recommended to keep the expression matrix sparse as much as
+possible because plaid extensively take advantage of sparse matrix
+computations. But even for dense matrices plaid is fast.
+
+Notice that by default plaid performs median normalization of the
+final results. That also means that it is not necessary to
+normalize your expression matrix before running plaid. However,
+generally, log transformation is recommended.
+
+Plaid can also be run on the ranked matrix, we will see later that
+this corresponds to the singscore (Fouratan et al., 2018). Or plaid
+could be run on the (non-logarithmic) counts which can be used to
+calculate the scSE score (Pont et al., 2019).
+
+Plaid is fast and memery efficient because it uses very efficient
+sparse matrix computation in the back. For very large \code{X}, plaid
+uses chunked computation by splitting the matrix in chunks to avoid
+index overflow. Should you encounter errors, please compute your
+dataset by subsetting manually the expression matrix and/or gene
+sets.
+
+Although \code{X} and \code{matG} are generally very sparse, be aware that
+the result matrix \code{gsetX} generally is dense and therefore can
+become very large. If you would want to compute the score of 10.000
+gene sets on a million of cells this would create a large 10.000 x
+1.000.000 dense matrix which requires about 75GB of memory.
 }
 \examples{
-# Load the example dataset provided and run:
-#gmt <- read.gmt("hallmark.gmt")
-#matG <- gmt2mat(gmt)
-#gsetX <- plaid(X, matG)
+library(plaid)
+load(system.file("extdata", "pbmc3k-50cells.rda", package = "plaid"))
+hallmarks <- system.file("extdata", "hallmarks.gmt", package = "plaid")
+gmt <- read.gmt(hallmarks)
+matG <- gmt2mat(gmt)
+gsetX <- plaid(X, matG)
 
 }

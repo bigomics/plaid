@@ -214,8 +214,12 @@ logarithmic) score and perform additional normalization by the total
 UMI per sample. We have wrapped this in a single convenience function:
 
 ```{r}
-scse <- replaid.scse(X, matG)
+scse <- replaid.scse(X, matG, removeLog2=TRUE, scoreMean=FALSE)
 ```
+
+To replicate the original "sum-of-UMI" scSE score, set
+`removeLog2=TRUE` and `scoreMean=FALSE`. scSE and plaid scores become
+more similar for `removeLog2=FALSE` and `scoreMean=TRUE`.
 
 We have extensively compared the results from `replaid.scse` and from
 the original scSE (implemented in GO lang) and we showed almost

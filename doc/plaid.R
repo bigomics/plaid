@@ -49,5 +49,5 @@ text( fc[1:5], -log10(pv[1:5]), rownames(res)[1:5],pos=2)
 sing <- replaid.sing(X, matG)
 
 ## -----------------------------------------------------------------------------
-scse <- replaid.scse(X, matG)
+scse <- replaid.scse(X, matG, removeLog2=TRUE, scoreMean=FALSE)
 
