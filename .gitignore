@@ -31,6 +31,7 @@ vignettes/*.pdf
 # knitr and R markdown default cache directories
 *_cache/
 /cache/
+/Meta/
 
 # Temporary files created by R markdown
 *.utf8.md
@@ -53,5 +54,3 @@ rsconnect/
 *.BAK
 *.save
 \#*
-/Meta/
-/doc/

@@ -5,7 +5,7 @@ knitr::opts_chunk$set(
 )
 
 ## -----------------------------------------------------------------------------
-# devtools::install_github('BigOmics/plaid')
+# devtools::install_github('bigomics/plaid')
 
 ## -----------------------------------------------------------------------------
 library("plaid")

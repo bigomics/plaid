@@ -33,7 +33,7 @@ easily installed using devtools::install_github() function provided by
 
 
 ```{r}
-# devtools::install_github('BigOmics/plaid')
+# devtools::install_github('bigomics/plaid')
 ```
 
 
