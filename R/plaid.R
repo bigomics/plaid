@@ -123,13 +123,6 @@ chunked_crossprod <- function(x, y, chunk=NULL) {
   gsetX
 }
 
-plaid.limma <- function(X, y, matG) {
-  gsetX <- plaid(X, matG)
-  gsetX <- normalize_medians(gsetX, ignore.zero=NULL)   
-  res <- playbase::gx.limma(gsetX, y, fdr=1, lfc=0, sort.by='none')
-  res
-}
-
 #' @export
 plaid.ttest <- function(X, y, matG) {
   gsetX <- plaid(X, matG)
