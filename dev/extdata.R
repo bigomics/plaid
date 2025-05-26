@@ -11,5 +11,5 @@ table(y)
 sel <- c(head(which(y=="B"),25), head(which(y=="Naive CD4 T"),25))
 X <- X[,sel]
 X <- X[rowSums(X)>0,]
-celltype <- c(rep("_Bcell",25),rep("_Tcell",25))
+celltype <- c(rep("B",25),rep("T",25))
 save(X, celltype, file="../inst/extdata/pbmc3k-50cells.rda")

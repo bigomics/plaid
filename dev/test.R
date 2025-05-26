@@ -8,21 +8,22 @@ data("pbmc3k.final")
 pbmc3k.final <- Seurat::UpdateSeuratObject(pbmc3k.final)
 X <- pbmc3k.final[['RNA']]@data
 dim(X)
-
-
-
+X <- do.call(cbind, rep(list(X),10))
 
 gmt <- read.gmt(system.file("extdata", "hallmarks.gmt", package = "plaid"))
-gmt <- read.gmt("~/Playground/data/gmt/c5.all.v6.1.symbols.gmt")
 matG <- gmt2mat(gmt)
 dim(matG)
 
 ## run plaid
-gsetX <- plaid(X, matG)
+peakRAM::peakRAM( gsetX <- plaid(X, matG, normalize=TRUE) )
 dim(gsetX)
 
 ## good practice to normalize median
-gsetX <- normalize_medians(gsetX)
+peakRAM::peakRAM( gsetX <- normalize_medians(gsetX) )
+peakRAM::peakRAM( Rfast::colMedians(gsetX))
+peakRAM::peakRAM( matrixStats::colMedians(gsetX))
+peakRAM::peakRAM( apply(gsetX,2,stats::median,na.rm=TRUE))
+
 
 ## do test
 celltype <- pbmc3k.final$seurat_annotations

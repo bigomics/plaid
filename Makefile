@@ -1,8 +1,17 @@
+build: doc
+	R -e "devtools::build()"
+
+doc: vignettes/plaid.Rmd
+	R -e "devtools::document()"
+	R -e "devtools::build_vignettes()"
+
 install: 
 	R CMD INSTALL .
 
 check: clean
-	Rscript -e 'devtools::check()'
+	R -e 'devtools::check()'
 
-clean: 
-	rm -f `find . -name '.#*' -o -name '*~' -o -name '#*#' -o -name '*.save' -o -name '*.bak' -o -name '*.SAVE' -o -name '*.BAK'`
+clean:
+	rm -f `find . -name '.#*' -o -name '#*' -o -name '*~' -printf '"%p" '`
+
+FORCE: ;

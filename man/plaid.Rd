@@ -6,7 +6,7 @@
 the geneset. Requires log-expression matrix X and (sparse) geneset
 matrix matG.}
 \usage{
-plaid(X, matG, stats = "mean", chunk = NULL, as_matrix = TRUE)
+plaid(X, matG, stats = "mean", chunk = NULL, normalize = TRUE)
 }
 \arguments{
 \item{use.cov}{Logical for whether using a scaled model matrix of the full pairs}

@@ -24,10 +24,13 @@ use_package("sparseMatrixStats")
 use_package("metap")
 
 ## For vignette
+use_package("BiocStyle", type = "Suggests")
 #use_package("Seurat", type = "Suggests")
 #use_package("SeuratData", type = "Suggests")
 
 use_readme_md()
+
+use_build_ignore(c("dev"))
 
 check()
 install()

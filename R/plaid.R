@@ -16,7 +16,7 @@
 #' #gsetX <- plaid(X, matG)
 #'
 #' @export
-plaid <- function(X, matG, stats="mean", chunk=NULL, as_matrix=TRUE) {
+plaid <- function(X, matG, stats="mean", chunk=NULL, normalize=TRUE) {
   if (NCOL(X) == 1) X <- cbind(X)
   gg <- intersect(rownames(X), rownames(matG))
   if (length(gg) == 0) {
@@ -31,9 +31,11 @@ plaid <- function(X, matG, stats="mean", chunk=NULL, as_matrix=TRUE) {
     G <- Matrix::colScale(G, 1 / sumG)
   }
   ## This single line calcules the plaid score
-  #gsetX <- Matrix::crossprod(G, X) 
   gsetX <- chunked_crossprod(G, X, chunk=NULL)
-  if(as_matrix) gsetX <- as.matrix(gsetX)
+  gsetX <- as.matrix(gsetX)
+  if(normalize) {
+    gsetX <- normalize_medians(gsetX, ignore.zero=NULL)
+  }
   return(gsetX)
 }
 
@@ -63,7 +65,7 @@ chunked_crossprod <- function(x, y, chunk=NULL) {
 }
 
 plaid.limma <- function(X, y, matG) {
-  gsetX <- plaid(X, matG, as_matrix=TRUE)
+  gsetX <- plaid(X, matG)
   gsetX <- normalize_medians(gsetX, ignore.zero=NULL)   
   res <- playbase::gx.limma(gsetX, y, fdr=1, lfc=0, sort.by='none')
   res
@@ -71,7 +73,7 @@ plaid.limma <- function(X, y, matG) {
 
 #' @export
 plaid.ttest <- function(X, y, matG) {
-  gsetX <- plaid(X, matG, as_matrix=TRUE)
+  gsetX <- plaid(X, matG)
   gsetX <- normalize_medians(gsetX, ignore.zero=NULL)
   res <- Rfast::ttests( Matrix::t(gsetX), ina=y+1)
   m1 <- rowMeans(gsetX[,y==1],na.rm=TRUE)
@@ -120,7 +122,7 @@ plaid.test <- function(X, y, G, gsetX=NULL, normalize=FALSE,
   if("lm" %in% tests) {
     if(is.null(gsetX)) {      
       message("[plaid.test] computing plaid scores...")
-      gsetX <- plaid(X, G, as_matrix=TRUE)
+      gsetX <- plaid(X, G)
     }
     if(normalize) gsetX <- normalize_medians(gsetX, ignore.zero=NULL) 
     message("[plaid.test] computing t-tests...")
@@ -181,12 +183,12 @@ replaid.scse <- function(X, matG, removeLog2=NULL, scoreMean=FALSE) {
   }
   if(scoreMean) {
     ## modified scSE with Mean-statistics    
-    sX <- plaid(X, matG, stats="mean", as_matrix=FALSE)
+    sX <- plaid(X, matG, stats="mean", normalize=FALSE)
     sumx <- Matrix::colMeans(abs(X)) + 1e-8    
     sX <- sX %*% Matrix::Diagonal(x = 1/sumx)
   } else {
     ## original scSE with Sum-statistics
-    sX <- plaid(X, matG, stats="sum", as_matrix=FALSE)
+    sX <- plaid(X, matG, stats="sum", normalize=FALSE)
     sumx <- Matrix::colSums(abs(X)) + 1e-8
     sX <- sX %*% Matrix::Diagonal(x = 1/sumx) * 100      
   }
@@ -202,7 +204,7 @@ replaid.sing <- function(X, matG) {
   ## the ties.method=min is important for exact replication
   rX <- Matrix::t(sparseMatrixStats::colRanks(X, ties.method="min"))  
   rX <- rX / nrow(X) - 0.5
-  plaid(rX, matG=matG)
+  plaid(rX, matG=matG, normalize=FALSE)
 }
 
 ##----------------------------------------------------------------
@@ -242,14 +244,18 @@ normalize_medians <- function(x, ignore.zero=NULL) {
   if(is.null(ignore.zero)) {
     ignore.zero <- (min(x,na.rm=TRUE)==0)
   }
+  x <- as.matrix(x)
   if(ignore.zero) {
-    medx <- apply(x,2,function(y) stats::median(y[y!=0],na.rm=TRUE))
-    med0 <- stats::median(x[x!=0],na.rm=TRUE)
+    zx <- x
+    zx[Matrix::which(x==0)] <- NA
+    #medx <- Rfast::colMedians(zx, na.rm=TRUE)
+    medx <- matrixStats::colMedians(zx, na.rm=TRUE)    
+    medx[is.na(medx)] <- 0
   } else {
-    medx <- apply(x,2, stats::median,na.rm=TRUE)
-    med0 <- stats::median(x,na.rm=TRUE)
-  }  
-  t(t(x) - medx) + med0
+    #medx <- Rfast::colMedians(x, na.rm=TRUE)
+    medx <- matrixStats::colMedians(x, na.rm=TRUE)    
+  }
+  sweep(x, 2, medx, '-') + mean(medx, na.rm=TRUE)
 }
 
 #' @export
