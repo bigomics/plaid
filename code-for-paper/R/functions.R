@@ -28,12 +28,12 @@ sing.limma <- function(X, y, gmt) {
   gx.limma(gsetX, y, fdr=1, lfc=0, sort.by='none')
 }
 
-run.avgFC <- function(fc, matG) {
-  mt <- matrix_ttest(fc, matG)
-  res <- cbind(fc = mt$diff, pv = mt$pvalue)
-  colnames(res) <- c("logFC","p.value")
-  res
-}
+## run.avgFC <- function(fc, matG) {
+##   mt <- matrix_ttest(fc, matG)
+##   res <- cbind(fc = mt$diff, pv = mt$pvalue)
+##   colnames(res) <- c("logFC","p.value")
+##   res
+## }
 
 run.methods <- function(X, gmt) {
   ## prepare
@@ -58,8 +58,8 @@ run.methods <- function(X, gmt) {
     ssgsea <- gset.gsva(X, gmt, method="ssgsea"),
     ucell  <- t(UCell::ScoreSignatures_UCell(X, gmt)),  ## needs logx
     aucell <- AUCell::getAUC(AUCell::AUCell_run(X, gmt)), ## uses rank
-    ## scse.sum  <- run.SCSE(X, gmt, removeLog2=TRUE, scoreMean=FALSE),
-    scse <- run.SCSE(X, gmt, removeLog2=FALSE, scoreMean=TRUE, path="../scse"),
+    scse <- run.SCSE(X, gmt, removeLog2=TRUE, scoreMean=FALSE, path="../scse"),
+    scse.mean <- run.SCSE(X, gmt, removeLog2=FALSE, scoreMean=TRUE, path="../scse"),
     replaid.scse <- plaid::replaid.scse(X, matG, removeLog2=FALSE, scoreMean=TRUE),
     replaid.sing <- plaid::replaid.sing(X, matG),
     plaid  <- plaid::plaid(X, matG),
@@ -76,7 +76,8 @@ run.methods <- function(X, gmt) {
     ssgsea = ssgsea[,],    
     ucell = ucell,
     aucell = aucell,
-    scse = scse,        
+    scse = scse,
+    scse.mean = scse.mean,        
     replaid.scse = replaid.scse,
     replaid.sing = replaid.sing,        
     plaid = plaid,

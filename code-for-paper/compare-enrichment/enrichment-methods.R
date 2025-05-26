@@ -2,50 +2,22 @@ library(playbase)
 library(Seurat)
 library(SeuratData)
 library(peakRAM)
+library(plaid)
 
 source("~/Playground/playbase/dev/include.R", chdir=TRUE)
-source("../../plaid/R/plaid.R")
 source("../R/functions.R")
 source("../R/datasets.R")
-
-#InstallData("pbmc3k")
-data("pbmc3k.final")
-pbmc3k.final <- UpdateSeuratObject(pbmc3k.final)
-head(pbmc3k.final)
-
-DimPlot(pbmc3k.final, reduction = "umap",
-  group.by = "seurat_annotations",
-  label = TRUE, label.size=8) + NoLegend()
-dim(pbmc3k.final)
 
 ##----------------------------------------------------
 ## Compare with direct methods
 ##----------------------------------------------------
 
-X <- pbmc3k.final[['RNA']]@data
-X <- X[rowSums(X)>0, ]
-dim(X)
-
-matG <- Matrix::t(playdata::GSETxGENE)
-sel <- grep("GO_BP",colnames(matG))
-matG <- matG[,sel]
-dim(matG)
-##colnames(matG) <- gsub("[_ /]","-",colnames(matG))
-
-gg <- intersect(rownames(X),rownames(matG))
-X <- X[gg,1:25]
-matG <- matG[gg,]
-
-gmt <- mat2gmt(matG)
-length(gmt)
-matG <- matG[,names(gmt)]
-dim(matG)
-
-y <- 1*(pbmc3k.final$seurat_annotations == "B")
-y <- y[1:ncol(X)]
-table(y)
+DATASETS <- c("testis50","pbmc3k","geiger","GSE10846-dlbcl",
+              "tcga-brca_pub","GSE72056-scmelanoma","GSE102908-ibet")
+ds=DATASETS[2]
 
 run.enrichment <- function(X, y, matG, gmt) {
+  y <- 1*(y==y[1])
   de <- gx.limma(as.matrix(X), y, fdr=1, lfc=0)
   sig.up <- rownames(de)[de$logFC > 0.2 & de$P.Value < 0.05]
   sig.dn <- rownames(de)[de$logFC < -0.2 & de$P.Value < 0.05]  
@@ -56,7 +28,7 @@ run.enrichment <- function(X, y, matG, gmt) {
                                min.genes=0, max.genes=9999),
     res.cor <- gset.rankcor(fc, matG, compute.p=TRUE, use.rank=FALSE),
     res.rankcor <- gset.rankcor(fc, matG, compute.p=TRUE),
-    res.avgFC <- run.avgFC(fc, matG),
+    ##res.avgFC <- run.avgFC(fc, matG),
     res.plaid <- plaid.test(X, y, matG, normalize=TRUE),
     res.gsva <- gsva.limma(X, y, gmt, method="gsva"),
     res.ssgsea <- gsva.limma(X, y, gmt, method="ssgsea"),    
@@ -70,7 +42,7 @@ run.enrichment <- function(X, y, matG, gmt) {
     fisher = res.fisher,
     cor = res.cor$rho,
     rankcor = res.rankcor$rho,
-    avgFC = res.avgFC,    
+    ##avgFC = res.avgFC,    
     plaid.test = res.plaid,
     gsva.limma = res.gsva,
     ssgsea.limma = res.ssgsea,    
@@ -83,7 +55,7 @@ run.enrichment <- function(X, y, matG, gmt) {
     fisher = res.fisher[pp,"sign"],
     cor = res.cor$rho[pp,1],
     rankcor = res.rankcor$rho[pp,1],
-    avgFC = res.avgFC[pp,"logFC"],
+    ##avgFC = res.avgFC[pp,"logFC"],
     plaid.test = res.plaid[pp,"gsetFC"],
     gsva.limma = res.gsva[pp,"logFC"],
     ssgsea.limma = res.ssgsea[pp,"logFC"],    
@@ -94,7 +66,7 @@ run.enrichment <- function(X, y, matG, gmt) {
     fisher = res.fisher[pp,"p.value"],
     cor = res.cor$p.value[pp,1],
     rankcor = res.rankcor$p.value[pp,1],
-    avgFC = res.avgFC[pp,"p.value"],
+    ##avgFC = res.avgFC[pp,"p.value"],
     plaid.test = res.plaid[pp,"p.meta"],
     gsva.limma = res.gsva[pp,"P.Value"],
     ssgsea.limma = res.ssgsea[pp,"P.Value"],
@@ -105,25 +77,50 @@ run.enrichment <- function(X, y, matG, gmt) {
   list(score=score, pvalue=pvalue, timings = timings)
 }
 
-dim(matG)
-enr <- NULL
+for(ds in DATASETS) {
+  
+  cat("*****",ds,"*****\n")
+  dataset <- get_dataset(ds)
+  str(dataset)
+  cat("name = ",dataset$name,"\n")
+  
+  X <- dataset$X
+  y <- dataset$y
+  cat("ncolX = ",ncol(X),"\n")
+  cat("len.y = ",length(y),"\n")
+    
+  matG <- Matrix::t(playdata::GSETxGENE)
+  sel <- grep("GO_BP",colnames(matG))
+  matG <- matG[,sel]
+  dim(matG)
+  ##colnames(matG) <- gsub("[_ /]","-",colnames(matG))
 
-##X <- normalize_medians(X, ignore.zero=NULL)   
-enr <- run.enrichment(X, y, matG, gmt)
-str(enr)
-enr$timings
+  gg <- intersect(rownames(X),rownames(matG))
+  X <- X[gg,]
+  matG <- matG[gg,]
+  
+  gmt <- mat2gmt(matG)
+  length(gmt)
+  matG <- matG[,names(gmt)]
+  dim(matG)
+  
+  enr <- run.enrichment(X, y, matG, gmt)
+  str(enr)
+  enr$timings
 
-P <- enr$pvalue
-apply(P,2,function(x) head(names(sort(x))))
-F <- enr$score
-R <- apply(F, 2, rank)
-
-pdf("enrichment-othermethods.pdf",h=10,w=10)
-pairs( F, pch='.', cex=2, main="enrichment score")
-pairs( R, pch='.', cex=1, main="enrichment score (ranks)")
-pairs( P, pch='.', cex=1, main="enrichment p-value")
-pairs( -log(P), pch='.', cex=1, main="enrichment -log(p)")
-dev.off()
+  P <- enr$pvalue
+  apply(P,2,function(x) head(names(sort(x))))
+  F <- enr$score
+  R <- apply(F, 2, rank)
+  
+  pdf(paste0("enrichment-methods-",ds,".pdf"),h=10,w=10)
+  pairs( F, pch='.', cex=2, main="enrichment score")
+  pairs( R, pch='.', cex=1, main="enrichment score (ranks)")
+  pairs( P, pch='.', cex=1, main="enrichment p-value")
+  pairs( -log(P), pch='.', cex=3, main="enrichment -log(p)")
+  dev.off()
+  
+}
 
 
 ##---------------------------------------------------------

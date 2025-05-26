@@ -1,0 +1,11 @@
+This folder contains code that was used in the original paper
+(BioArxiv and journal).
+
+You probably need to install the R packages of all used algorithms
+first: singscore, GSVA, AUCell, and Ucell.
+
+The executable for scSE is written Go and can be downloaded from their
+GitHub repo
+https://github.com/FredPont/Single-CellSignatureExplorer. For the
+comparisons we also used a modified version of scSE that computes the score as the
+

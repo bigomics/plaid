@@ -48,8 +48,6 @@ for(ds in DATASETS) {
   run <- run.methods(X, gmt)
   names(run)
   run$timings
-  run$results[['scse.sum.log']] <- NULL
-  run$results[['scse.log']] <- log2(1 + run$results[['scse']])
   
   pdf(paste0("compare-scatterplot-",ds,".pdf"), w=10, h=10)
 
@@ -63,7 +61,7 @@ for(ds in DATASETS) {
     xx <- xx[sel]
   }
   xx <- lapply(xx, function(x) x[rownames(xx[[1]]),])
-  xx <- lapply(xx, normalize_medians)  ## important
+  xx <- lapply(xx, plaid::normalize_medians)  ## important
   lm <- lapply(xx, function(x)
     gx.limma(x, y, fdr=1, lfc=0, sort.by='none'))
   lm <- lapply(lm, function(m) m[rownames(lm[[1]]),])
@@ -72,15 +70,18 @@ for(ds in DATASETS) {
   rownames(FF)=rownames(PP)=rownames(lm[[1]])
   FF[is.na(FF)] <- 0
   PP[is.na(PP)] <- 1
-  XX <- do.call(cbind, lapply(xx, function(x) x[,2]))
+  XX <- do.call(cbind, lapply(xx, function(x) x[,1]))
+
+  rxx <- lapply( xx, function(x) x - rowMeans(x))
+  relXX <- do.call(cbind, lapply(rxx, function(x) x[,1]))
   
   gsize <- sapply(gmt,length)
   cex1 <- 0.05*sqrt(gsize[rownames(FF)])
-  avgfc <- rowMeans(colranks(FF,signed=TRUE))
+  avgfc <- rowMeans(plaid::colranks(FF,signed=TRUE))
   topfc <- tail(names(sort(avgfc)),50)
   is.topfc <- rownames(XX) %in% topfc
 
-  avgx <- rowMeans(colranks(XX,signed=FALSE))
+  avgx <- rowMeans(plaid::colranks(XX,signed=FALSE))
   topx <- tail(names(sort(avgx)),50)
   is.topx <- rownames(XX) %in% topx
   col1 <- c("grey50","red2")[1 + 1*is.topfc]
@@ -89,18 +90,30 @@ for(ds in DATASETS) {
   
   pairs(XX, main=paste0("geneset score (",ds,") - sample1"),
         cex=cex1, col=col1, gap=0.5)  
-  pairs(FF, main=paste0("geneset FC (",ds,")"), cex=cex1, col=col1, gap=0.5)
+  pairs(relXX, main=paste0("relative geneset score (",ds,") - sample1"),
+        cex=cex1, col=col1, gap=0.5)  
+  pairs(FF, main=paste0("geneset logFC (",ds,")"), cex=cex1, col=col1, gap=0.5)
   pairs(PP, main=paste0("geneset p-value (",ds,")"), pch='.',
         cex=2*cex1, col=col1, gap=0.5)
   pairs(-log(PP), main=paste0("geneset -log(p) (",ds,")"), pch='.' ,
         cex=8*cex1, col=col1, gap=0.5)  
   
   ## focussed FC plot
-  sel <- sort(c("cor","rankcor","scse.sum","scse.mean","scse.sum.log","plaid","gsva","ssgsea","sing"))
+  sel <- sort(c("cor","rankcor","scse.mean","plaid","plaid.r","gsva","ssgsea","sing"))
+  sel <- intersect(sel,colnames(FF))
   F2 <- FF[,sel]
   pairs(F2, cex=1*cex1, col=col1)
   
   dev.off()
+
+  rho.list <- list(
+    XX = cor(XX),
+    relXX = cor(relXX),
+    FF = cor(FF),
+    PP = cor(PP),
+    logPP = cor(-log(PP))
+  )
+  save(rho.list, file=paste0("compare-correlation-",ds,".rda"))
 }
 
 

@@ -150,7 +150,7 @@ chunked_crossprod <- function(x, y, chunk=NULL) {
 #' @param tests Character array indicating which tests to perform.
 #' 
 #' @export
-plaid.test <- function(X, y, G, gsetX, tests = c("one","lm") ) {
+plaid.test <- function(X, y, G, gsetX, tests = c("one","lm"), sort.by='p.meta') {
   if(!all(unique(y) %in% c(0,1))) stop("elements of y must be 0 or 1")
   if(is.list(G)) {
     message("[plaid.test] converting gmt to sparse matrix...")
@@ -218,7 +218,9 @@ plaid.test <- function(X, y, G, gsetX, tests = c("one","lm") ) {
     p.meta = pmeta,
     q.meta = qmeta    
   )
-  res <- res[order(res[,"p.meta"]),]
+  if(sort.by %in% colnames(res)) {
+    res <- res[order(res[,sort.by]),]
+  }
   res
 }
 

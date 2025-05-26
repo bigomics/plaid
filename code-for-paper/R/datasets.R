@@ -1,5 +1,5 @@
 
-get_dataset <- function(ds) {
+get_dataset <- function(ds, n=20) {
 
   pgx.file <- file.path("~/Playground/pgx",paste0(ds,".pgx"))
   has.pgx <- file.exists(pgx.file)
@@ -11,9 +11,6 @@ get_dataset <- function(ds) {
     topX <- head(X[order(-apply(X,1,sd)),],400)
     hc <- hclust(dist(t(scale(topX))))
     y <- cutree(hc,2)
-    sel <- unlist(tapply(1:length(y),y,head,10))
-    y <- y[sel]
-    X <- X[,sel]
     out <- list(X=X, y=y, name=ds)
   }
 
@@ -31,14 +28,7 @@ get_dataset <- function(ds) {
     X <- pbmc3k.final[['RNA']]@data
     X <- X[rowSums(X)>0, ]
     celltype <- pbmc3k.final$seurat_annotations
-    sel <- unlist(tapply(1:ncol(X),celltype=="B",head,10))
-    X <- X[,sel]
-    
-    head(pbmc3k.final)
-    celltype <- pbmc3k.final$seurat_annotations
-    head(celltype,25)
-    y <- 1*(celltype[colnames(X)] == "B")
-    table(y)
+    y <- 1*(celltype == "B")
     out <- list(X=X, y=y, name="pbmc3k")
   }
   
@@ -47,7 +37,6 @@ get_dataset <- function(ds) {
     dim(X)
     samples <- playbase::SAMPLES
     y <- 1*(samples$activated=="act")
-    table(y)
     out <- list(X=X, y=y, name="geiger")
   }
 
@@ -57,13 +46,16 @@ get_dataset <- function(ds) {
     topX <- head(X[order(-apply(X,1,sd)),],400)
     topX <- t(scale(t(topX)))
     y <- cutree(hclust(dist(t(topX))),2)
-    table(y)
-    sel <- unlist(tapply(1:length(y),y,head,10))
-    y <- y[sel]
-    X <- X[,sel]
     out <- list(X=X, y=y, name="testis50")
   }
-  
+
+  ## subsetiting
+  if( ncol(out$X) > n) {
+    sel <- unlist(tapply(1:length(out$y),out$y,head,n))
+    out$y <- out$y[sel]
+    out$X <- out$X[,sel]
+  }
+
   return(out)
 }
 

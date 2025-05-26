@@ -1,0 +1,226 @@
+---
+title: "PLAID: ultrafast single-sample enrichment scoring"
+author: "BigOmics Analytics"
+package: plaid
+output: 
+    BiocStyle::html_document
+vignette: >
+  %\VignetteIndexEntry{PLAID: ultrafast single-sample enrichment scoring}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+# Introduction
+
+We developed PLAID (Pathway Level Average Intensity Detection), a
+novel, ultrafast and memory optimized gene set scoring
+algorithm. PLAID demonstrates accurate gene set scoring and
+outperforms all currently available gene set scoring methods in large
+bulk and single-cell RNA-seq datasets.
+
+
+# Installing 'plaid'
+
+The most updated version of ‘plaid’ is hosted on GitHub and can be
+easily installed using devtools::install_github() function provided by
+
+
+```{r}
+# devtools::install_github('BigOmics/plaid')
+```
+
+
+# Example: Single-cell RNA-seq hallmark scoring
+
+## Preparing data
+
+For this vignette, our package includes a small subset of the the
+pmbc3k single-cell dataset of just 50 cells. Please install the Seurat
+and SeuratData packages if you want to run this vignette against the
+full dataset.
+
+```{r}
+library("plaid")
+load(system.file("extdata", "pbmc3k-50cells.rda", package = "plaid"),verbose=TRUE)
+if(FALSE) {
+  library(Seurat)
+  library(SeuratData)
+  data("pbmc3k.final")
+  pbmc3k.final <- Seurat::UpdateSeuratObject(pbmc3k.final)
+  X <- pbmc3k.final[['RNA']]@data
+  celltype <- pbmc3k.final$seurat_annotations
+}
+dim(X)
+```
+
+Note that X is the normalized expression matrix form the Seurat
+object, not the raw counts matrix. We recommend to run Plaid on the
+log transformed expression matrix, not on the counts, as the average
+in the logarithmic space is more robust and is in concordance to
+calculating the geometric mean.
+
+It is not necessary to normalize your expression matrix before running
+plaid because plaid normalizes the enrichment scores
+afterwards. However, again, log transformation is recommended.
+
+It is recommended to keep the expression matrix sparse as much as
+possible because plaid extensively take advantage of sparse matrix
+computations. But even for dense matrices plaid is fast.
+
+
+## Preparing gene sets
+
+For convenience we have included the 50 Hallmark genesets in our
+package. But we encourage you to download larger geneset collections
+as Plaid's speed advantage will be more apparent for larger datasets
+and large geneset collections.
+
+Plaid needs the gene sets as sparse matrix. If you have your
+collection of gene sets a a list, we need first to convert the gmt
+list to matrix format.
+
+```{r}
+hallmarks <- system.file("extdata", "hallmarks.gmt", package = "plaid")
+gmt <- read.gmt(hallmarks)
+matG <- gmt2mat(gmt)
+dim(matG)
+```
+
+If you have your own gene sets stored as gmt files, you can
+conveniently use the included `read.gmt()` function to read the gmt
+file.
+
+
+## Calculating the score
+
+The main function to run plaid is `plaid()`. We run plaid on our
+expression matrix `X` and gene set matrix `matG`.
+
+```{r}
+gsetX <- plaid(X, matG, normalize=TRUE)
+dim(gsetX)
+```
+
+The resulting matrix `gsetX` contains the single-sample enrichment
+scores for the specified gene sets and samples. 
+
+Notice that by default plaid performs median normalization of the
+final results. That also means that it is not necessary to normalize
+your expression matrix before running plaid. However, generally, log
+transformation is recommended.
+
+Plaid can also be run on the ranked matrix, we will see later that
+this corresponds to the singscore (Fouratan et al., 2018). Or plaid
+could be run on the (non-logarithmic) counts which can be used to
+calculate the scSE score (Pont et al., 2019).
+
+## Very large matrices
+
+Plaid is fast and memery efficient because it uses very efficient
+sparse matrix computation in the back. For very large `X`, plaid uses
+chunked computation by splitting the matrix in chunks to avoid index
+overflow. Should you encounter errors, please compute your dataset by
+subsetting manually the expression matrix and/or gene sets.
+
+Although `X` and `matG` are generally very sparse, be aware that the
+result matrix `gsetX` generally is dense and therefore can become very
+large. If you would want to compute the score of 10.000 gene sets on a
+million of cells this would create a large 10.000 x 1.000.000 dense
+matrix which requires about 75GB of memory.
+
+
+## Performing a differential expression test
+
+Once we have the gene sets scores we can use these scores for
+statistical analysis. We could compute the differential gene set
+expression between two groups using a general t-test or limma directly
+on the score matrix `gsetX`.
+
+Another way to test whether a gene set is statistically significant
+would be to test whether the fold-change of the genes in the gene sets
+are statistically different than zero. That is, we can perform a one
+sample t-test on the logFC of the genes of each gene sets and test
+whether they are significantly different from zero. The logFC is
+computed from the original (log) expression matrix `X` and group
+vector `y`.
+
+The function `plaid.test()` does both tests: the one-sample t-test on
+the logFC  and the two-group t-test on the gene set matrix `gsetX`.
+
+
+```{r}
+y <- 1*(celltype == "B")
+res <- plaid.test(X, y, matG, gsetX=gsetX, tests=c("one","lm"))
+```
+
+The top significant genesets can be shown with
+
+```{r}
+res <- res[order(res[,"p.meta"]),] 
+head(res)
+```
+
+The column `gsetFC` corresponds to the difference in gene set score
+and also corresponds to the average foldchange of the genes in the
+gene set. The column 'p.one' corresponds to the one-sample t-test on
+the logFC, the column 'p.lm' corresponds to the two-group t-test on
+the geneset scores `gsetX`. The two p-values are then combined using
+Stouffer's method in the column 'p.meta' and adjusted for multiple
+testing in column `q.meta`.
+
+We can also show the results as a volcano plot:
+
+```{r}
+fc <- res[,"gsetFC"]
+pv <- res[,"p.meta"]
+plot( fc, -log10(pv), xlab="logFC", ylab="-log10p", pch=19)
+abline(h=0, v=0, lty=2)
+text( fc[1:5], -log10(pv[1:5]), rownames(res)[1:5],pos=2)
+```
+
+# Replicating singscore and scSE
+
+Plaid can be used to replicated the singscore (Fouratan et al., 2018)
+and Single-Cell Signature Explorer (scSE) score (Pont et al., 2019).
+But using plaid, the computation is much faster than the original
+code.
+
+## Replicating singscore
+
+Computing the singscore requires to compute the ranks of the
+expression matrix. We have wrapped this in a single convenience
+function:
+
+```{r}
+sing <- replaid.sing(X, matG)
+```
+
+We have extensively compared the results of `replaid.sing` and from
+the original `singscore` R package and we showed identical result in
+the score, logFC and p-values.
+
+
+## Replicating the scSE score
+
+Computing the scSE requires running plaid on the linear (not
+logarithmic) score and perform additional normalization by the total
+UMI per sample. We have wrapped this in a single convenience function:
+
+```{r}
+scse <- replaid.scse(X, matG, removeLog2=TRUE, scoreMean=FALSE)
+```
+
+To replicate the original "sum-of-UMI" scSE score, set
+`removeLog2=TRUE` and `scoreMean=FALSE`. scSE and plaid scores become
+more similar for `removeLog2=FALSE` and `scoreMean=TRUE`.
+
+We have extensively compared the results from `replaid.scse` and from
+the original scSE (implemented in GO lang) and we showed almost
+identical results in the score, logFC and p-values.
