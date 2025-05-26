@@ -4,7 +4,7 @@
 \alias{plaid}
 \title{Compute plaid single-sample enrichment score}
 \usage{
-plaid(X, matG, stats = "mean", chunk = NULL, normalize = TRUE)
+plaid(X, matG, stats = c("mean", "sum"), chunk = NULL, normalize = TRUE)
 }
 \arguments{
 \item{X}{Gene or protein expression matrix. Generally log

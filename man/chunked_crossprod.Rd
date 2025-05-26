@@ -2,10 +2,20 @@
 % Please edit documentation in R/plaid.R
 \name{chunked_crossprod}
 \alias{chunked_crossprod}
-\title{Compute crossprod (t(x) \%*\% y) for very large y by computing in
-chunks.}
+\title{Chunked computation of cross product}
 \usage{
 chunked_crossprod(x, y, chunk = NULL)
+}
+\arguments{
+\item{x}{Matrix First matrix for multiplication. Can be sparse.}
+
+\item{y}{Matrix Second matrix for multiplication. Can be sparse.}
+
+\item{chunk}{Integer Chunk size (max number of columns) for
+computation.}
+}
+\value{
+Matirx. Result of matrix cross product.
 }
 \description{
 Compute crossprod (t(x) \%*\% y) for very large y by computing in

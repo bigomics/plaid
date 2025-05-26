@@ -75,7 +75,8 @@
 #' gsetX <- plaid(X, matG)
 #'
 #' @export
-plaid <- function(X, matG, stats="mean", chunk=NULL, normalize=TRUE) {
+plaid <- function(X, matG, stats=c("mean","sum"), chunk=NULL, normalize=TRUE) {
+  stats <- stats[1]
   if (NCOL(X) == 1) X <- cbind(X)
   gg <- intersect(rownames(X), rownames(matG))
   if (length(gg) == 0) {
@@ -98,9 +99,18 @@ plaid <- function(X, matG, stats="mean", chunk=NULL, normalize=TRUE) {
   return(gsetX)
 }
 
+#' Chunked computation of cross product
+#'
 #' Compute crossprod (t(x) %*% y) for very large y by computing in
 #' chunks.
 #'
+#' @param x Matrix First matrix for multiplication. Can be sparse.
+#' @param y Matrix Second matrix for multiplication. Can be sparse.
+#' @param chunk Integer Chunk size (max number of columns) for
+#'   computation.
+#'
+#' @return Matirx. Result of matrix cross product.
+#' 
 chunked_crossprod <- function(x, y, chunk=NULL) {
   if(is.null(chunk) || chunk < 0) {
     ## if y is large, we need to chunk computation
@@ -123,27 +133,24 @@ chunked_crossprod <- function(x, y, chunk=NULL) {
   gsetX
 }
 
-#' @export
-plaid.ttest <- function(X, y, matG) {
-  gsetX <- plaid(X, matG)
-  gsetX <- normalize_medians(gsetX, ignore.zero=NULL)
-  res <- Rfast::ttests( Matrix::t(gsetX), ina=y+1)
-  m1 <- rowMeans(gsetX[,y==1],na.rm=TRUE)
-  m0 <- rowMeans(gsetX[,y==0],na.rm=TRUE)
-  padj <- stats::p.adjust(res[,"pvalue"], method="fdr")
-  fc <- m1 - m0
-  avg <- rowMeans(gsetX)
-  df <- data.frame(logFC=fc, AveExpr=avg, t=res[,"stat"],
-    P.Value = res[,"pvalue"], adj.P.Val = padj,
-    AveExpr.0 = m0, AveExpr.1 = m1)
-  df
-}
 
+#' Statistical testing of differentially enrichment
 #'
+#' This function performs statistical testing for differential
+#' enrichment using plaid
 #'
+#' @param X Matrix of log expression value
+#' @param y Vector of 0s and 1s indicating group
+#' @param G Sparse matrix of gene sets. Non-zero entry indicates
+#'   gene/feature is part of gene sets. Features on rows, gene sets on
+#'   columns.
+#' @param gsetX Gene set score matrix which is output of
+#'   `plaid()`. Can be NULL in that case it will be recomputed from X
+#'   and G (default required).
+#' @param tests Character array indicating which tests to perform.
+#' 
 #' @export
-plaid.test <- function(X, y, G, gsetX=NULL, normalize=FALSE,
-                       tests = c("one","lm") ) {
+plaid.test <- function(X, y, G, gsetX, tests = c("one","lm") ) {
   if(!all(unique(y) %in% c(0,1))) stop("elements of y must be 0 or 1")
   if(is.list(G)) {
     message("[plaid.test] converting gmt to sparse matrix...")
@@ -176,7 +183,6 @@ plaid.test <- function(X, y, G, gsetX=NULL, normalize=FALSE,
       message("[plaid.test] computing plaid scores...")
       gsetX <- plaid(X, G)
     }
-    if(normalize) gsetX <- normalize_medians(gsetX, ignore.zero=NULL) 
     message("[plaid.test] computing t-tests...")
     res.lm  <- Rfast::ttests( Matrix::t(gsetX), ina=y+1)
     p3 <- res.lm[,"pvalue"]
@@ -294,10 +300,6 @@ replaid.scse <- function(X, matG, removeLog2=NULL, scoreMean=FALSE) {
 #'   transformed. See details. Genes on rows, samples on columns.
 #' @param matG Gene sets sparse matrix. Genes on rows, gene sets on
 #'   columns.
-#' @param removeLog2 Logical for whether to remove the Log2, i.e. will
-#'   apply power transform (base2) on input (default TRUE).
-#' @param scoreMean Logical for whether computing sum or mean as score
-#'   (default FALSE).
 #' 
 #' @export
 replaid.sing <- function(X, matG) {
@@ -340,6 +342,15 @@ matrix_ttest <- function(F, G, method="two") {
   list(diff = f_matrix, stats = t_matrix, pvalue=p_matrix)
 }
 
+#' Normalize column medians of matrix
+#'
+#' This function normalizes the column medians of matrix x. It calls
+#' optimized functions from the matrixStats package.
+#'
+#' @param x Input matrix
+#' @param ignore.zero Logical indicating whether to ignore zeros to
+#'   exclude for median calculation
+#'
 #' @export
 normalize_medians <- function(x, ignore.zero=NULL) {
   if(is.null(ignore.zero)) {
@@ -359,6 +370,17 @@ normalize_medians <- function(x, ignore.zero=NULL) {
   sweep(x, 2, medx, '-') + mean(medx, na.rm=TRUE)
 }
 
+#' Compute columnwise ranks of matrix
+#'
+#' Computes columnwise rank of matrix. Can be sparse. Tries to call
+#' optimized functions from Rfast or matrixStats.
+#'
+#' @param X Input matrix
+#' @param sparse Logical indicating to use sparse methods
+#' @param signed Logical indicating using signed ranks
+#' @param keep.zero Logical indicating whether to keep zero as ranked zero
+#' @param ties.method Character Choice of ties.method
+#' 
 #' @export
 colranks <- function(X, sparse=NULL, signed=FALSE, keep.zero=FALSE,
                      ties.method = "average") {
@@ -390,6 +412,12 @@ colranks <- function(X, sparse=NULL, signed=FALSE, keep.zero=FALSE,
   rX
 }
 
+#' Compute columm ranks for sparse matrix. Internally used by colranks()
+#'
+#' @param X Input matrix
+#' @param signed Logical indicating using signed ranks
+#' @param ties.method Character Choice of ties.method
+#' 
 sparse_colranks <- function(X, signed=FALSE, ties.method="average") {
   ## https://stackoverflow.com/questions/41772943
   X <- methods::as(X, "CsparseMatrix")

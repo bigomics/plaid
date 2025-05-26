@@ -20,6 +20,7 @@ use_test("plaid")
 use_package("Matrix")
 use_package("Rfast")
 use_package("matrixStats")
+use_package("methods")
 use_package("sparseMatrixStats")
 use_package("metap")
 

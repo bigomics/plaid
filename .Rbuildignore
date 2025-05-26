@@ -6,3 +6,5 @@
 ^[.].*$
 ^.*/[.].*$
 ^Meta$
+^doc$
+^code-for-paper$

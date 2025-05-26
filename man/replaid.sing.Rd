@@ -12,12 +12,6 @@ transformed. See details. Genes on rows, samples on columns.}
 
 \item{matG}{Gene sets sparse matrix. Genes on rows, gene sets on
 columns.}
-
-\item{removeLog2}{Logical for whether to remove the Log2, i.e. will
-apply power transform (base2) on input (default TRUE).}
-
-\item{scoreMean}{Logical for whether computing sum or mean as score
-(default FALSE).}
 }
 \description{
 Calculates single-sample enrichment singscore
