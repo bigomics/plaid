@@ -1,7 +1,6 @@
-library(playbase)
 library(plaid)
 
-source("~/Playground/playbase/dev/include.R", chdir=TRUE)
+##source("~/Playground/playbase/dev/include.R", chdir=TRUE)
 source("../R/functions.R")
 source("../R/datasets.R")
 
@@ -45,29 +44,31 @@ for(method in all.methods) {
     length(gmt)
     
     ## run ranked plaid and sing
+    time0=time1=NULL
     if(method == "scse.mean") {
       prepare.SCSE(X, gmt, path="../scse")
-      peakRAM::peakRAM(G1 <- run.SCSE(X, gmt, removeLog2=FALSE, scoreMean=TRUE, path="../scse"))
-      peakRAM::peakRAM(G2 <- replaid.scse(X, matG, removeLog2=FALSE, scoreMean=TRUE))
+      time0 <- peakRAM::peakRAM(G1 <- run.SCSE(X, gmt, removeLog2=FALSE, scoreMean=TRUE, path="../scse"))
+      time1 <- peakRAM::peakRAM(G2 <- replaid.scse(X, matG, removeLog2=FALSE, scoreMean=TRUE))
       method1 = "scse.mean"
       method2 = "replaid.scse"
     }
     if(method == "scse") {
       prepare.SCSE(X, gmt, path="../scse")
-      peakRAM::peakRAM(G1 <- run.SCSE(X, gmt, removeLog2=1, scoreMean=FALSE, path="../scse"))
-      peakRAM::peakRAM(G2 <- replaid.scse(X, matG, removeLog2=1, scoreMean=FALSE))
+      time0 <- peakRAM::peakRAM(G1 <- run.SCSE(X, gmt, removeLog2=1, scoreMean=FALSE, path="../scse"))
+      time1 <- peakRAM::peakRAM(G2 <- replaid.scse(X, matG, removeLog2=1, scoreMean=FALSE))
       method1 = "scse"
       method2 = "replaid.scse"
     }
     if(method == "sing") {
-      peakRAM::peakRAM( G1 <- gset.singscore(X, gmt, return.score = TRUE))
-      peakRAM::peakRAM( G2 <- replaid.sing(X, matG) )
+      time0 <- peakRAM::peakRAM( G1 <- gset.singscore(X, gmt, return.score = TRUE))
+      time1 <- peakRAM::peakRAM( G2 <- replaid.sing(X, matG) )
       method1 = "sing"
       method2 = "replaid.sing"
     }
     if(method == "ssgsea") {
-      G1 <- gset.gsva(X, gmt, method="ssgsea")
-      rX <- colranks(X, keep.zero=TRUE, ties.method="average")
+      ##G1 <- gset.gsva(X, gmt, method="ssgsea")
+      time0 <- peakRAM::peakRAM( G1 <- run.ssgsea(X, gmt, alpha=0) )
+      time1 <- peakRAM::peakRAM( rX <- colranks(X, keep.zero=TRUE, ties.method="average") )
       G2 <- plaid::plaid(rX, matG)
       method1 = "ssGSEA"
       method2 = "replaid.ssgsea"
@@ -76,7 +77,7 @@ for(method in all.methods) {
     gg <- intersect(rownames(G1),rownames(G2))
     G1 <- G1[gg,]
     G2 <- G2[gg,]
-    plot(G1[,1], G2[,1])
+    ##plot(G1[,1], G2[,1])
     relG1 <- G1 - rowMeans(G1)
     relG2 <- G2 - rowMeans(G2)
   
@@ -98,7 +99,8 @@ for(method in all.methods) {
     rr
     rr <- round(rr,3)
     rr.str <- ifelse(rr==1, "(r>0.999)", paste0("(r=",rr,")"))
-    
+
+    par(mar=c(3.4,4,2.4,1))
     plot( G1[,1], G2[,1], xlab=paste(method1,"score"), ylab=method2)
     title(paste0("score  ",rr.str[1]), cex.main=1.2)
     legend("topleft", legend=toupper(ds), cex=0.8, bty="n")
@@ -109,11 +111,28 @@ for(method in all.methods) {
     plot( m1$logFC, m2$logFC, xlab=paste(method1,"score"), ylab=method2)
     title(paste0("logFC  ",rr.str[3]), cex.main=1.2)
     
-    plot( m1$P.Value, m2$P.Value, xlab=paste(method1,"score"), ylab=method2)
-    title(paste0("p-value  ",rr.str[4]), cex.main=1.2)
+#    plot( m1$P.Value, m2$P.Value, xlab=paste(method1,"score"), ylab=method2)
+#    title(paste0("p-value  ",rr.str[4]), cex.main=1.2)
     
-    plot( -log10(m1$P.Value), -log10(m2$P.Value), xlab=paste(method1,"score"), ylab=method2)
+    plot( -log10(m1$P.Value), -log10(m2$P.Value), xlab=paste(method1,"score"),
+      ylab=method2)
     title(paste0("-log10p  ",rr.str[5]), cex.main=1.2)
+
+    ## write timings
+    t0 <- round(time0[1,"Elapsed_Time_sec"],3)
+    m0 <- round(time0[1,"Peak_RAM_Used_MiB"],1)
+    t1 <- round(time1[1,"Elapsed_Time_sec"],3)
+    m1 <- round(time1[1,"Peak_RAM_Used_MiB"],1)
+    plot.new();par(mar=c(1,0,1,1)*2)
+    text(0,0.9,paste0(method1,": ",t0,"sec"),adj=0, cex=1)
+    text(0,0.8,paste0(method1,": ",m0,"MiB"),adj=0, cex=1)
+    text(0,0.6,paste0(method2,": ",t1,"sec"),adj=0, cex=1)
+    text(0,0.5,paste0(method2,": ",m1,"MiB"),adj=0, cex=1)    
+
+    text(0,0.3,paste0("nsets: ",ncol(matG)),adj=0, cex=1)
+    text(0,0.2,paste0("nsamples: ",ncol(X)),adj=0, cex=1)
+    text(0,0.1,paste0("ngenes: ",nrow(X)),adj=0, cex=1)        
+
   }
 }
 dev.off()

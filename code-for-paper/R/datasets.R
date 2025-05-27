@@ -4,7 +4,8 @@ get_dataset <- function(ds, n=20) {
   pgx.file <- file.path("~/Playground/pgx",paste0(ds,".pgx"))
   has.pgx <- file.exists(pgx.file)
   has.pgx
-
+  out <- NULL
+  
   if(has.pgx) {
     pgx <- pgx.load(pgx.file)
     X <- pgx$X
@@ -32,7 +33,7 @@ get_dataset <- function(ds, n=20) {
     out <- list(X=X, y=y, name="pbmc3k")
   }
   
-  if(ds=="geiger") {
+  if(require(playbase) && ds=="geiger") {
     X <- logCPM(playbase::COUNTS)
     dim(X)
     samples <- playbase::SAMPLES
@@ -41,7 +42,9 @@ get_dataset <- function(ds, n=20) {
   }
 
   if(ds=="testis50") {
-    X <- read.csv("~/Playground/projects/SingleCellSignatureScorer/data/50first_cells_in_testis.tsv", row.names=1, sep='\t')
+    fn <- "~/Playground/projects/SingleCellSignatureScorer/data/50first_cells_in_testis.tsv"
+    if(!file.exists(fn)) stop("missing data file")
+    X <- read.csv(fn, row.names=1, sep='\t')
     X <- t(as.matrix(X))
     topX <- head(X[order(-apply(X,1,sd)),],400)
     topX <- t(scale(t(topX)))
@@ -49,13 +52,45 @@ get_dataset <- function(ds, n=20) {
     out <- list(X=X, y=y, name="testis50")
   }
 
+  if(is.null(out)) {
+    stop("Error: could not find dataset '", ds, "'")
+  }
+
   ## subsetiting
-  if( ncol(out$X) > n) {
+  if(ncol(out$X) > n) {
     sel <- unlist(tapply(1:length(out$y),out$y,head,n))
     out$y <- out$y[sel]
     out$X <- out$X[,sel]
   }
 
   return(out)
+}
+
+
+#' @export
+logCPM <- function(counts, total = 1e6, prior = 1, log = TRUE) {
+  ## Transform to logCPM (log count-per-million) if total counts is
+  ## larger than 1e6, otherwise scale to previous avarage total count.
+  ##
+  ##
+  if (is.null(total)) {
+    total0 <- mean(Matrix::colSums(counts, na.rm = TRUE)) ## previous sum
+    total <- ifelse(total0 < 1e6, total0, 1e6)
+    message("[logCPM] setting column sums to = ", round(total, 2))
+  }
+  if (any(class(counts) == "dgCMatrix")) {
+    ## fast/sparse calculate CPM
+    cpm <- counts
+    cpm[is.na(cpm)] <- 0 ## OK??
+    cpm@x <- total * cpm@x / rep.int(Matrix::colSums(cpm), diff(cpm@p)) ## fast divide by columns sum
+    if (log) cpm@x <- log2(prior + cpm@x)
+    return(cpm)
+  } else {
+    totcounts <- Matrix::colSums(counts, na.rm = TRUE)
+    ## cpm <- t(t(counts) / totcounts * total)
+    cpm <- sweep(counts, 2, totcounts, FUN = "/") * total
+    if (log) cpm <- log2(prior + cpm)
+    return(cpm)
+  }
 }
 

@@ -312,6 +312,42 @@ replaid.sing <- function(X, matG) {
   plaid(rX, matG=matG, normalize=FALSE)
 }
 
+#' Fast calculation of ssGSEA
+#'
+#' @description Calculates single-sample enrichment singscore (Barbie
+#'   et al., 2009; Hänzelmann et al., 2013) using plaid back-end. The
+#'   computation is 10-100x faster than the original code.
+#'
+#' @details Computing ssGSEA score requires to compute the ranks of
+#'   the expression matrix and weighting of the ranks. We have wrapped
+#'   this in a single convenience function.
+#'
+#' We have extensively compared the results of `replaid.ssgsea` and
+#' from the original `GSVA` R package and we showed highly similar
+#' results in the score, logFC and p-values. For alpha=0 we obtain
+#' exact results, for alpha>0 the results are highly similar but not
+#' exactly the same.
+#' 
+#' @param X Gene or protein expression matrix. Generally log
+#'   transformed. See details. Genes on rows, samples on columns.
+#' @param matG Gene sets sparse matrix. Genes on rows, gene sets on
+#'   columns.
+#' @param alpha Weighting factor for exponential weighting of ranks
+#' 
+#' @export
+replaid.ssgsea <- function(X, matG, alpha=0) {
+  X <- methods::as(X, "CsparseMatrix")
+  rX <- colranks(X, keep.zero=TRUE, ties.method="average")
+  if(alpha != 0) {
+    ## This is not exactly like original formula. Not sure how to
+    ## efficiently implement original rank weighting
+    rX <- rX^(1 + alpha)
+  }
+  rX <- rX / max(rX) - 0.5
+  dimnames(rX) <- dimnames(X)
+  plaid(rX, matG, stats="mean", normalize=TRUE)
+}
+
 ##----------------------------------------------------------------
 ##-------------------- UTILITIES ---------------------------------
 ##----------------------------------------------------------------

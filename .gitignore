@@ -54,3 +54,4 @@ rsconnect/
 *.BAK
 *.save
 \#*
+/doc/

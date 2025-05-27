@@ -4,7 +4,7 @@
 \alias{plaid.test}
 \title{Statistical testing of differentially enrichment}
 \usage{
-plaid.test(X, y, G, gsetX, tests = c("one", "lm"))
+plaid.test(X, y, G, gsetX, tests = c("one", "lm"), sort.by = "p.meta")
 }
 \arguments{
 \item{X}{Matrix of log expression value}

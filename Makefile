@@ -1,7 +1,7 @@
 build: doc
 	R -e "devtools::build()"
 
-doc: vignettes/plaid-vignette.Rmd
+doc: vignettes/*.Rmd R/*.R
 	R -e "devtools::document()"
 	R -e "devtools::build_vignettes()"
 
