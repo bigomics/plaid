@@ -41,7 +41,6 @@ for differential enrichment testing.
 
 ```r
 library("plaid")
-
 library(Seurat)
 library(SeuratData)
 data("pbmc3k.final")
@@ -63,6 +62,13 @@ celltype <- pbmc3k.final$seurat_annotations
 y <- (celltype == "B")
 res <- plaid.test(X, y, matG, gsetX=gsetX)
 head(res)
+
+## simulate other scores
+s1 <- replaid.sing(X, matG)
+s2 <- replaid.ssgsea(X, matG, alpha=0)
+s3 <- replaid.scse(X, matG)
+S <- cbind(plaid=gsetX[,1], sing=s1[,1], ssgsea=s2[,1], scSE=s3[,1])
+pairs(S)
 ```
 
 ## Support

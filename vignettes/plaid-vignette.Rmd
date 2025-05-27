@@ -185,7 +185,7 @@ abline(h=0, v=0, lty=2)
 text( fc[1:5], -log10(pv[1:5]), rownames(res)[1:5],pos=2)
 ```
 
-# Replicating singscore and scSE
+# Replicating ssGSEA, singscore and scSE
 
 Plaid can be used to replicated the singscore (Fouratan et al., 2018)
 and Single-Cell Signature Explorer (scSE) score (Pont et al., 2019).
@@ -242,3 +242,14 @@ more similar for `removeLog2=FALSE` and `scoreMean=TRUE`.
 We have extensively compared the results from `replaid.scse` and from
 the original scSE (implemented in GO lang) and we showed almost
 identical results in the score, logFC and p-values.
+
+
+## Compare scores
+
+We can compare all scores in a pairs plot:
+
+```{r}
+S <- cbind(plaid=gsetX[,1], sing=sing[,1], ssgsea=ssgsea[,1], scSE=scse[,1])
+pairs(S)
+```
+
