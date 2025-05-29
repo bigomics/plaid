@@ -1,4 +1,3 @@
-^vignettes/articles$
 ^LICENSE$
 ^README\.Rmd$
 ^Makefile$
@@ -7,4 +6,4 @@
 ^.*/[.].*$
 ^Meta$
 ^doc$
-^code-for-paper$
+^experiments$
