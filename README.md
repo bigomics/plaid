@@ -29,10 +29,8 @@ devtools::install_github('bigomics/plaid')
 ## Usage example
 
 We provide a basic example on how to use Plaid. This example uses the
-pbmc3k dataset from Seurat which is a dataset of 2,700 single cells of
-Peripheral Blood Mononuclear Cells (PBMC) that were sequenced on the
-Illumina NextSeq 500. For the gene sets, as example, we included the
-hallmarks genesets from MSigDB.
+pbmc3k dataset from Seurat which is a dataset of 2,700 PBMC single cells. 
+For the gene sets, as example, we included the hallmarks genesets from MSigDB.
 
 However, we invite you to use your own bigger datasets and download
 bigger gene set collections as this shows the speed advantage of
