@@ -185,7 +185,7 @@ abline(h=0, v=0, lty=2)
 text( fc[1:5], -log10(pv[1:5]), rownames(res)[1:5],pos=2)
 ```
 
-# Replicating singscore and scSE
+# Replicating ssGSEA, singscore and scSE
 
 Plaid can be used to replicated the singscore (Fouratan et al., 2018)
 and Single-Cell Signature Explorer (scSE) score (Pont et al., 2019).
@@ -207,6 +207,24 @@ the original `singscore` R package and we showed identical result in
 the score, logFC and p-values.
 
 
+## Replicating ssGSEA
+
+Plaid can also be used to compute the ssGSEA score (Barbie et al.,
+2009). Using plaid, we can calculate the score upto 100x faster. We
+have wrapped this in a single convenience function:
+
+```{r}
+ssgsea <- replaid.ssgsea(X, matG, alpha=0)
+```
+
+We have extensively compared the results of `replaid.ssgsea()` and
+from the original `GSVA` R package. Note the rank weight parameter
+alpha. For `alpha=0` we obtained identical result for the score, logFC
+and p-values. For non-zero values for alpha the results are close but
+not exactly the same. The default value in the original publication
+and in GSVA is `alpha=0.25`.
+
+
 ## Replicating the scSE score
 
 Computing the scSE requires running plaid on the linear (not
@@ -224,3 +242,14 @@ more similar for `removeLog2=FALSE` and `scoreMean=TRUE`.
 We have extensively compared the results from `replaid.scse` and from
 the original scSE (implemented in GO lang) and we showed almost
 identical results in the score, logFC and p-values.
+
+
+## Compare scores
+
+We can compare all scores in a pairs plot:
+
+```{r}
+S <- cbind(plaid=gsetX[,1], sing=sing[,1], ssgsea=ssgsea[,1], scSE=scse[,1])
+pairs(S)
+```
+

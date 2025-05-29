@@ -71,6 +71,68 @@ run.methods <- function(X, gmt) {
   list(results = res, timings = timings)
 }
 
+## like run.methods but only for timings
+run.timings <- function(X, gmt, timeout=3L,
+                        methods=c("cor","rankcor","sing","gsva","ssgsea","ucell","aucell",
+                                  "scse","scse.mean","replaid.scse","replaid.sing",
+                                  "plaid","plaid.r","plaid.c","plaid.rc")) {
+  ## prepare
+  message("preparing sparse matrix matG...")
+  matG <- gmt2mat(gmt)
+  matG <- 1*(matG!=0)
+  
+  rX  <- Matrix::t(sparseMatrixStats::colRanks(X, ties.method="average")) / nrow(X)
+  cX <- as.matrix(X - rowMeans(X, na.rm=TRUE))
+  rcX <- Matrix::t(matrixStats::colRanks(cX, ties.method="min")) / nrow(X)
+
+  if(any(c("scse","scse.mean") %in% methods)) {
+    message("preparing scSE folders...")
+    prepare.SCSE(X, gmt, path="../scse")
+  }
+  
+  ## run with timeout
+  timeout <- as.integer(timeout)
+  wt <- function(m, ...) {
+    if(!m %in% methods) return(NA)
+    tryCatch({
+      res <- R.utils::withTimeout( ... , timeout=timeout)
+      return(FALSE)
+    }, TimeoutException = function(ex) {
+      message("Timeout")
+      return(TRUE)
+    })
+  }
+  
+  message("running methods...")  
+  res <- list()
+  timings <- peakRAM(
+    res[['cor']] <- wt("cor",gset.rankcor(X, matG, use.rank=FALSE)$rho),
+    res[['rankcor']] <- wt("rankcor",rankcor <- gset.rankcor(X, matG, use.rank=TRUE)$rho),
+    res[['sing']]   <- wt("sing",gset.singscore(X, gmt, center=FALSE)),
+    res[['gsva']]   <- wt("gsva",gset.gsva(X, gmt, method="gsva")),
+    res[['ssgsea']] <- wt("ssgsea",run.ssgsea(X, gmt, alpha=0.25)),
+    res[['ucell']]  <- wt("ucell",t(UCell::ScoreSignatures_UCell(X, gmt))),  ## needs logx
+    res[['aucell']] <- wt("aucell",AUCell::getAUC(AUCell::AUCell_run(X, gmt))), ## uses rank
+    res[['scse']] <- wt("scse",run.SCSE(X, gmt, removeLog2=TRUE, scoreMean=FALSE, path="../scse")),
+    res[['scse.mean']] <- wt("scse.mean",run.SCSE(X, gmt, removeLog2=FALSE, scoreMean=TRUE, path="../scse")),
+    res[['replaid.scse']] <- wt("replaid.scse",plaid::replaid.scse(X, matG, removeLog2=FALSE, scoreMean=TRUE)),
+    res[['replaid.sing']] <- wt("replaid.sing",plaid::replaid.sing(X, matG)),
+    res[['plaid']]  <- wt("plaid",plaid::plaid(X, matG)),
+    res[['plaid.r']]  <- wt("plaid.r",plaid::plaid(rX, matG)),
+    res[['plaid.c']]  <- wt("plaid.c",plaid::plaid(cX, matG)),
+    res[['plaid.rc']]  <- wt("plaid.rc",plaid::plaid(rcX, matG))    
+  )
+
+  res <- unlist(res)
+  timings$Function_Call <- names(res)
+  timings$Timeout <- res
+  timings$Elapsed_Time_sec[is.na(res)] <- NA
+  timings$Peak_RAM_Used_MiB[is.na(res)] <- NA  
+  timings$Total_RAM_Used_MiB <- NULL
+
+  return(timings)
+}
+
 
 
 #' Single sample genesets expression scores. See Foroutan 2018. This

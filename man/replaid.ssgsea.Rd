@@ -4,7 +4,7 @@
 \alias{replaid.ssgsea}
 \title{Fast calculation of ssGSEA}
 \usage{
-replaid.ssgsea(X, matG, alpha = 0.25)
+replaid.ssgsea(X, matG, alpha = 0)
 }
 \arguments{
 \item{X}{Gene or protein expression matrix. Generally log
@@ -26,6 +26,8 @@ the expression matrix and weighting of the ranks. We have wrapped
 this in a single convenience function.
 
 We have extensively compared the results of \code{replaid.ssgsea} and
-from the original \code{GSVA} R package and we showed very similar
-results in the score, logFC and p-values.
+from the original \code{GSVA} R package and we showed highly similar
+results in the score, logFC and p-values. For alpha=0 we obtain
+exact results, for alpha>0 the results are highly similar but not
+exactly the same.
 }

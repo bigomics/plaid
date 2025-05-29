@@ -49,5 +49,12 @@ text( fc[1:5], -log10(pv[1:5]), rownames(res)[1:5],pos=2)
 sing <- replaid.sing(X, matG)
 
 ## -----------------------------------------------------------------------------
+ssgsea <- replaid.ssgsea(X, matG, alpha=0)
+
+## -----------------------------------------------------------------------------
 scse <- replaid.scse(X, matG, removeLog2=TRUE, scoreMean=FALSE)
+
+## -----------------------------------------------------------------------------
+S <- cbind(plaid=gsetX[,1], sing=sing[,1], ssgsea=ssgsea[,1], scSE=scse[,1])
+pairs(S)
 
