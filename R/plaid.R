@@ -348,6 +348,66 @@ replaid.ssgsea <- function(X, matG, alpha=0) {
   plaid(rX, matG, stats="mean", normalize=TRUE)
 }
 
+#' Fast calculation of UCell
+#'
+#' @description Calculates single-sample enrichment UCell (Andreatta
+#'   et al., 2021) using plaid back-end. The computation is
+#'   10-100x faster than the original code.
+#'
+#' @details Computing ssGSEA score requires to compute the ranks of
+#'   the expression matrix and truncation of the ranks. We have wrapped
+#'   this in a single convenience function.
+#'
+#' We have extensively compared the results of `replaid.ucell` and
+#' from the original `UCell` R package and we showed near exacct
+#' results in the score, logFC and p-values. 
+#' 
+#' @param X Gene or protein expression matrix. Generally log
+#'   transformed. See details. Genes on rows, samples on columns.
+#' @param matG Gene sets sparse matrix. Genes on rows, gene sets on
+#'   columns.
+#' @param rmax Rank truncation threshold (see original
+#'   publication). Default rmax=1500.
+#' 
+#' @export
+replaid.ucell <- function(X, matG, rmax=1500) {
+  rX <- colranks(X, ties.method="average")
+  rX <- pmin( max(rX) - rX, rmax+1 )
+  S <- plaid(rX, matG)
+  S <- 1 - S / rmax + (colSums(matG!=0)+1)/(2*rmax)
+  return(S)
+}
+
+
+#' Fast calculation of AUCell
+#'
+#' @description Calculates single-sample enrichment AUCell (Aibar
+#'   et al., 2017) using plaid back-end. The computation is
+#'   10-100x faster than the original code.
+#'
+#' @details Computing the AUCell score requires to compute the ranks
+#'   of the expression matrix and approximating the AUC of a gene
+#'   set. We have wrapped this in a single convenience function.
+#'
+#' We have extensively compared the results of `replaid.aucell` and
+#' from the original `UCell` R package and we showed good concordance
+#' of results in the score, logFC and p-values.
+#' 
+#' @param X Gene or protein expression matrix. Generally log
+#'   transformed. See details. Genes on rows, samples on columns.
+#' @param matG Gene sets sparse matrix. Genes on rows, gene sets on
+#'   columns.
+#' @param aucMaxRank Rank threshold (see original
+#'   publication). Default aucMaxRank=0.05*nrow(X).
+#' 
+#' @export
+replaid.aucell <- function(X, matG, aucMaxRank=ceiling(0.05*nrow(X))) {
+  rX <- colranks(X, ties.method="average")
+  ww <- 1.08*pmax((rX - (max(rX) - aucMaxRank)) / aucMaxRank, 0)
+  plaid(ww, matG, stats="mean")
+}
+
+  
 ##----------------------------------------------------------------
 ##-------------------- UTILITIES ---------------------------------
 ##----------------------------------------------------------------
