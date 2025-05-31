@@ -305,9 +305,8 @@ replaid.scse <- function(X, matG, removeLog2=NULL, scoreMean=FALSE) {
 #' 
 #' @export
 replaid.sing <- function(X, matG) {
-  X <- methods::as(X, "CsparseMatrix")
   ## the ties.method=min is important for exact replication
-  rX <- Matrix::t(sparseMatrixStats::colRanks(X, ties.method="min"))  
+  rX <- colranks(X, ties.method="min")
   rX <- rX / nrow(X) - 0.5
   plaid(rX, matG=matG, normalize=FALSE)
 }
@@ -336,7 +335,6 @@ replaid.sing <- function(X, matG) {
 #' 
 #' @export
 replaid.ssgsea <- function(X, matG, alpha=0) {
-  X <- methods::as(X, "CsparseMatrix")
   rX <- colranks(X, keep.zero=TRUE, ties.method="average")
   if(alpha != 0) {
     ## This is not exactly like original formula. Not sure how to
@@ -374,10 +372,9 @@ replaid.ucell <- function(X, matG, rmax=1500) {
   rX <- colranks(X, ties.method="average")
   rX <- pmin( max(rX) - rX, rmax+1 )
   S <- plaid(rX, matG)
-  S <- 1 - S / rmax + (colSums(matG!=0)+1)/(2*rmax)
+  S <- 1 - S / rmax + (Matrix::colSums(matG!=0)+1)/(2*rmax)
   return(S)
 }
-
 
 #' Fast calculation of AUCell
 #'
@@ -407,7 +404,53 @@ replaid.aucell <- function(X, matG, aucMaxRank=ceiling(0.05*nrow(X))) {
   plaid(ww, matG, stats="mean")
 }
 
-  
+#' Fast approximation of GSVA
+#'
+#' @description Calculates single-sample enrichment GSVA (Hänzelmann
+#'   et al., 2013) using plaid back-end. The computation is
+#'   10-100x faster than the original code.
+#'
+#' @details Computing the GSVA score requires to compute the CDF of
+#'   the expression matrix, ranking and scoring the genesets. We have
+#'   wrapped this in a single convenience function.
+#'
+#' We have extensively compared the results of `replaid.gsva` and
+#' from the original `GSVA` R package and we showed good concordance
+#' of results in the score, logFC and p-values.
+#'
+#' In the original formulation, GSVA uses an emperical CDF to
+#' transform expression of each feature to a [0;1] relative expression
+#' value. For efficiency reasons, this is here approximated by a
+#' z-transform (center+scale) of each row.
+#' 
+#' @param X Gene or protein expression matrix. Generally log
+#'   transformed. See details. Genes on rows, samples on columns.
+#' @param matG Gene sets sparse matrix. Genes on rows, gene sets on
+#'   columns.
+#' @param tau Rank weight parameter (see GSVA publication). Default
+#'   tau=0.
+#' 
+#' @export
+replaid.gsva <- function(X, matG, tau=0) {
+  zX <- (X - Matrix::rowMeans(X)) / (1e-8 + rowsds(X))
+  rX <- colranks(zX, signed=TRUE, ties.method="average")
+  rX <- rX / max(abs(rX))
+  if(tau > 0) {
+    ## Note: This is not exactly like original formula. Not sure how
+    ## to efficiently implement original rank weighting
+    rX <- sign(rX) * abs(rX)^(1 + tau)
+  }
+  dimnames(rX) <- dimnames(X)
+  plaid(rX, matG)
+}
+
+rowsds <- function(X) {
+  if(inherits(X,"CsparseMatrix")) {
+    return(sparseMatrixStats::rowSds(X))
+  }
+  matrixStats::rowSds(X)  
+}
+
 ##----------------------------------------------------------------
 ##-------------------- UTILITIES ---------------------------------
 ##----------------------------------------------------------------

@@ -97,7 +97,7 @@ if(0) {
   timings <- read.csv(file="benchmark-v2@tokyo.csv", row.names=1)  
   timings <- read.csv(file="benchmark-pbmc3k@p14.csv", row.names=1)
   timings <- read.csv(file="benchmark-tcga-brca_pub@p14.csv", row.names=1)  
-  head(timings)
+  tail(timings)
   timings
 
   sel.methods <- c("sing","gsva","ssgsea", ## "cor",
@@ -121,7 +121,7 @@ if(0) {
       
       tt <- timings$Elapsed_Time_sec[sel]
       is.timeout <- (timings$Timeout[sel] & tt>3000) | tt>3600
-      tt[is.timeout] <- 3600 + tt0[is.timeout]*0.1
+      tt[is.timeout] <- 3600 + tt0[is.timeout]*0.001
       names(tt) <- timings$Function_Call[sel]
       barplot(sort(tt), xlab="Time_sec", las=1, #log=xlog,
               cex.names=1, horiz=TRUE, col="tan2")
