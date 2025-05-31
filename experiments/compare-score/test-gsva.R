@@ -13,11 +13,13 @@ sel <- grep("GO_BP",colnames(matG))
 full.matG <- matG[,sel]
 
 dataset <- get_dataset("testis50")
-dataset <- get_dataset("pbmc3k")
+dataset <- get_dataset("pbmc3k",n=40)
 dataset <- get_dataset("geiger")
 X <- dataset$X
 y <- dataset$y
+table(y)
 dim(X)
+X <- X[mat.rowsds(X)>0.1,]
 
 gg <- intersect(rownames(X),rownames(full.matG))
 X <- X[gg,]
@@ -33,21 +35,40 @@ gmt <- mat2gmt(matG)
 source("../R/functions.R")
 source("../../R/plaid.R")
 
-par(mfrow=c(2,2))
+par(mfrow=c(3,3),mar=c(4,4,2,2))
 
 gsvapar <- GSVA::gsvaParam(X, gmt, tau=0, kcdf='Gaussian', maxDiff=TRUE)
 S1 <- GSVA::gsva(gsvapar, verbose = FALSE)
 
-zX <- (X - rowMeans(X)) / matrixStats::rowSds(X)
+sdx <- mat.rowsds(X)
+zX <- X
+zX <- (X - Matrix::rowMeans(X)) 
+zX <- (X - Matrix::rowMeans(X)) / mat.rowsds(X)
+zX <- t(apply(X,1,function(x) ecdf(x)(x)))
+zX <- zX * sdx
+
 rX <- colranks(zX, signed=TRUE, ties.method="average")
 rX <- rX / max(abs(rX))
 S2 <- plaid(rX, matG)
 
-S2 <- replaid.gsva(X, matG, tau=0)
-
-##S2 <- replaid.ucell(X, matG, rmax=1500)
+S2 <- replaid.gsva(X, matG, tau=0, rowtf='z')
 S2 <- S2[rownames(S1),]
 plot(S1[,1], S2[,1], xlab="gsva", ylab="replaid")
+
+S3 <- replaid.gsva(X, matG, tau=0, rowtf='ecdf')
+S4 <- replaid.ssgsea(X, matG, alpha=0)
+S3 <- S3[rownames(S2),]
+S4 <- S4[rownames(S2),]
+ss <- cbind('gsva'=S1[,1], 'replaid.z'=S2[,1],
+            'replaid.ecdf'=S3[,1], 'ssgsea'=S4[,1])
+pairs(ss)
+
+ff <- sapply(list(S1,S2,S3,S4),function(x) (x-rowMeans(x))[,1])
+pairs(ff)
+
+
+
+
 
 par(mfrow=c(2,2))
 ss <- c()

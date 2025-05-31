@@ -43,25 +43,26 @@ for(ds in DATASETS) {
   gmt <- mat2gmt(matG)
 
   dim(X)
+  Matrix::mean(X==0)
   XL <- do.call(cbind, rep(list(X), 10))
   XL <- do.call(cbind, rep(list(XL), 4))
   dim(XL)
 
   xlist <- list( X[,1:100], XL[,1:1000], XL[,1:10000])
   #xlist <- list( X[,1:10], X[,1:100], X[,1:1000])
-  #xlist <- list( XL[,1:1000])
+  xlist <- list( XL[,1:10000])
   sapply(xlist, ncol)
   remove(XL)
 
   gmt <- mat2gmt(matG)
   gmt.list <- list(
-    hallmark = gmt[grep("HALLMARK",names(gmt))],
-    gobp = gmt[grep("GO_BP",names(gmt))],
+#    hallmark = gmt[grep("HALLMARK",names(gmt))],
+#    gobp = gmt[grep("GO_BP",names(gmt))],
     gmt = gmt
   )
   sapply(gmt.list, length)
 
-  fn = paste0("benchmark-",ds,"@p14.csv")
+  fn = paste0("redo-benchmark-",ds,"@p14.csv")
   fn
   
   timings <- c()
@@ -78,9 +79,9 @@ for(ds in DATASETS) {
       message("num.samples = ", ncol(X1))
 
       methods=c("plaid","plaid.r","plaid.c","plaid.rc")
-      methods=c("cor","rankcor","sing","gsva","ssgsea","ucell","aucell",
-                "scse", "scse.mean",
-                "replaid.scse","replaid.sing",
+      methods=c("cor","rankcor",
+                #"sing","gsva","ssgsea","ucell","aucell",
+                "scse", "scse.mean", "replaid.scse","replaid.sing",
                 "plaid","plaid.r","plaid.c","plaid.rc")
       tt <- run.timings(X1, gmt1, timeout=(60*60), methods=methods)
       tt <- cbind(tt, nsets=length(gmt1), nrow=nrow(X1), ncol=ncol(X1), dataset=ds)
@@ -96,7 +97,7 @@ if(0) {
 
   timings <- read.csv(file="benchmark-v2@tokyo.csv", row.names=1)  
   timings <- read.csv(file="benchmark-pbmc3k@p14.csv", row.names=1)
-  timings <- read.csv(file="benchmark-tcga-brca_pub@p14.csv", row.names=1)  
+  timings <- read.csv(file="benchmark-brca@p14.csv", row.names=1)  
   tail(timings)
   timings
 
@@ -106,7 +107,7 @@ if(0) {
   timings <- timings[timings$Function_Call %in% sel.methods,]
   timings
   
-  pdf("benchmark-brca@p14.pdf",w=11,h=5.5,pointsize=13)
+  pdf("benchmark-pbmc3k@p14.pdf",w=11,h=5.5,pointsize=13)
   nsets <- unique(timings$nsets)
   nsamples <- unique(timings$ncol)
   nc <- length(nsamples)
@@ -121,7 +122,7 @@ if(0) {
       
       tt <- timings$Elapsed_Time_sec[sel]
       is.timeout <- (timings$Timeout[sel] & tt>3000) | tt>3600
-      tt[is.timeout] <- 3600 + tt0[is.timeout]*0.001
+      tt[is.timeout] <- 3600 + tt[is.timeout]*0.001
       names(tt) <- timings$Function_Call[sel]
       barplot(sort(tt), xlab="Time_sec", las=1, #log=xlog,
               cex.names=1, horiz=TRUE, col="tan2")

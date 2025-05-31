@@ -431,8 +431,17 @@ replaid.aucell <- function(X, matG, aucMaxRank=ceiling(0.05*nrow(X))) {
 #'   tau=0.
 #' 
 #' @export
-replaid.gsva <- function(X, matG, tau=0) {
-  zX <- (X - Matrix::rowMeans(X)) / (1e-8 + rowsds(X))
+replaid.gsva <- function(X, matG, tau=0, rowtf=c("z","ecdf")[1]) {
+  rowtf <- rowtf[1]
+  if(rowtf=="z") {
+    ## Faster approximation of relative activation
+    zX <- (X - Matrix::rowMeans(X)) / (1e-8 + mat.rowsds(X))
+  } else if(rowtf=='ecdf') {
+    ## this implements original ECDF idea
+    zX <- t(apply(X,1,function(x) ecdf(x)(x))) 
+  } else {
+    stop("Error: unknown row transform",rowtf)
+  }
   rX <- colranks(zX, signed=TRUE, ties.method="average")
   rX <- rX / max(abs(rX))
   if(tau > 0) {
@@ -444,7 +453,7 @@ replaid.gsva <- function(X, matG, tau=0) {
   plaid(rX, matG)
 }
 
-rowsds <- function(X) {
+mat.rowsds <- function(X) {
   if(inherits(X,"CsparseMatrix")) {
     return(sparseMatrixStats::rowSds(X))
   }
