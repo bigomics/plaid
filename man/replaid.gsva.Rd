@@ -4,7 +4,7 @@
 \alias{replaid.gsva}
 \title{Fast approximation of GSVA}
 \usage{
-replaid.gsva(X, matG, tau = 0)
+replaid.gsva(X, matG, tau = 0, rowtf = c("z", "ecdf")[1])
 }
 \arguments{
 \item{X}{Gene or protein expression matrix. Generally log

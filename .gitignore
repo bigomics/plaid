@@ -32,6 +32,7 @@ vignettes/*.pdf
 *_cache/
 /cache/
 /Meta/
+/doc/
 
 # Temporary files created by R markdown
 *.utf8.md
@@ -52,6 +53,11 @@ rsconnect/
 # Backup files
 *~
 *.BAK
+*.tmp
 *.save
 \#*
-/doc/
+
+# Output
+*.out
+*.Rout
+*.tmp/

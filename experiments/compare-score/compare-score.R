@@ -21,13 +21,6 @@ all.methods <- c("scse","scse.mean","sing","ssgsea")
 method="sing"
 method="ssgsea"
 
-rowsds <- function(X) {
-  if(inherits(X,"CsparseMatrix")) {
-    return(sparseMatrixStats::rowSds(X))
-  }
-  matrixStats::rowSds(X)  
-}
-
 par(mfrow=c(1,1))
 
 pdf("compare-score-n100-sd01.pdf", h=15, w=12, pointsize=12)
@@ -43,7 +36,7 @@ for(ds in DATASETS) {
   y <- dataset$y
   dim(X)
   X <- X[,1:min(10,ncol(X))]
-  X <- X[rowsds(X)>0.1,]
+  X <- X[mat.rowsds(X)>0.1,]  # important!
   dim(X)
   
   gg <- intersect(rownames(X),rownames(full.matG))
