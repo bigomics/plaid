@@ -64,7 +64,7 @@ plaid <- function(X, matG, stats=c("mean","sum"), chunk=NULL, normalize=TRUE) {
 
   gg <- intersect(rownames(X), rownames(matG))
   if (length(gg) == 0) {
-    message("[PLAID] ERROR. No overlapping features.")
+    message("[plaid] ERROR. No overlapping features.")
     return(NULL)
   }
 
@@ -79,7 +79,7 @@ plaid <- function(X, matG, stats=c("mean","sum"), chunk=NULL, normalize=TRUE) {
   ## Calculates PLAID score
   gsetX <- chunked_crossprod(G, X, chunk=NULL)
   gsetX <- as.matrix(gsetX)
-
+  
   if(normalize) gsetX <- normalize_medians(gsetX)
  
   return(gsetX)
@@ -140,50 +140,59 @@ chunked_crossprod <- function(x, y, chunk=NULL) {
 #' @param tests Character array indicating which tests to perform.
 #' 
 #' @export
-plaid.test <- function(X, y, G, gsetX, tests = c("one", "lm"), sort.by = 'p.meta') {
-  if(!all(unique(y) %in% c(0,1))) stop("elements of y must be 0 or 1")
+plaid.test <- function(X,
+                       y,
+                       G,
+                       gsetX,
+                       tests = c("one", "lm"),
+                       sort.by = 'p.meta') {
+
+  if(!all(unique(y) %in% c(0,1)))
+    stop("[plaid.test] Elements of y must be 0 or 1.")
   if(is.list(G)) {
-    message("[plaid.test] converting gmt to sparse matrix...")
+    message("[plaid.test] Converting gmt to sparse matrix...")
     G <- gmt2mat(G)
   } else {
-    message("[plaid.test] sparse matrix provided")
+    message("[plaid.test] Sparse matrix provided.")
   }
   p1=p2=p3=NULL
   df1=df2=df3=NULL
   gg <- intersect(rownames(G),rownames(X))
-  X <- X[gg,]
-  G <- G[gg,]
+  X <- X[gg, , drop = FALSE]
+  G <- G[gg, , drop = FALSE]
   
   m1 <- Matrix::rowMeans(X[,y==1,drop=FALSE])
   m0 <- Matrix::rowMeans(X[,y==0,drop=FALSE])
   fc <- m1 - m0
   
   if("one" %in% tests) {
-    mt1 <- matrix_ttest(fc, G, method="one")
-    p1 <- mt1$pvalue[,1]
-    df1 <- mt1$diff[,1]
+    mt1 <- matrix_ttest(fc, G, method = "one")
+    p1 <- mt1$pvalue[, 1]
+    df1 <- mt1$diff[, 1]
   }
+
   if("two" %in% tests) {
-    mt2 <- matrix_ttest(fc, G, method="two")
-    p2 <- mt2$pvalue[,1]
-    df2 <- mt2$diff[,1]        
+    mt2 <- matrix_ttest(fc, G, method = "two")
+    p2 <- mt2$pvalue[, 1]
+    df2 <- mt2$diff[, 1]        
   }
+
   if("lm" %in% tests) {
     if(is.null(gsetX)) {      
-      message("[plaid.test] computing plaid scores...")
+      message("[plaid.test] Computing plaid scores...")
       gsetX <- plaid(X, G)
     }
-    message("[plaid.test] computing t-tests...")
-    res.lm  <- Rfast::ttests( Matrix::t(gsetX), ina=y+1)
-    p3 <- res.lm[,"pvalue"]
-    df3 <- rowMeans(gsetX[,y==1]) - rowMeans(gsetX[,y==0])
+    message("[plaid.test] Computing t-tests...")
+    res.lm  <- Rfast::ttests(Matrix::t(gsetX), ina = y+1)
+    p3 <- res.lm[, "pvalue"]
+    df3 <- rowMeans(gsetX[, y==1]) - rowMeans(gsetX[, y==0])
     names(p3) <- rownames(gsetX)
     names(df3) <- rownames(gsetX)
   }
   
-  P <- list("one"=p1,"two"=p2,"lm"=p3)
+  P <- list("one" = p1, "two" = p2, "lm" = p3)
   P <- P[!sapply(P,is.null)]
-  F <- list("one"=df1,"two"=df2,"lm"=df3)
+  F <- list("one" = df1, "two" = df2, "lm" = df3)
   F <- F[!sapply(F,is.null)]
   
   gg <- Reduce(intersect, lapply(P, names))
@@ -198,20 +207,22 @@ plaid.test <- function(X, y, G, gsetX, tests = c("one", "lm"), sort.by = 'p.meta
   if(NCOL(P)>1) {
     pmeta <- apply(P, 1, function(x) metap::sumz(x)$p)
   } else {
-    pmeta <- P[,1]
+    pmeta <- P[, 1]
   }
-  colnames(P) <- paste0("p.",colnames(P))
-  qmeta <- stats::p.adjust(pmeta, method="fdr")
+  colnames(P) <- paste0("p.", colnames(P))
+  qmeta <- stats::p.adjust(pmeta, method = "fdr")
   res <- cbind(
     gsetFC = gsetFC,
     pvalues = P,
     p.meta = pmeta,
     q.meta = qmeta    
   )
-  if(sort.by %in% colnames(res)) {
-    res <- res[order(res[,sort.by]),]
-  }
-  res
+
+  if(sort.by %in% colnames(res))
+    res <- res[order(res[,sort.by]), ]
+
+  return(res)
+  
 }
 
 
@@ -245,12 +256,16 @@ plaid.test <- function(X, y, G, gsetX, tests = c("one", "lm"), sort.by = 'p.meta
 #'   (default FALSE).
 #'
 #' @export
-replaid.scse <- function(X, matG, removeLog2=NULL, scoreMean=FALSE) {
-  if(is.null(removeLog2)) {
-    removeLog2 <- min(X,na.rm=TRUE)==0 && max(X,na.rm=TRUE) < 20
-  }
+replaid.scse <- function(X,
+                         matG,
+                         removeLog2 = NULL,
+                         scoreMean = FALSE) {
+
+  if(is.null(removeLog2))
+    removeLog2 <- min(X, na.rm = TRUE)==0 && max(X, na.rm = TRUE) < 20
+  
   if(removeLog2)  {
-    message("[replaid.scse] removing log2")
+    message("[replaid.scse] Converting data to linear scale (removing log2)...")
     if(inherits(X,"dgCMatrix")) {
       X@x <- 2**X@x
     } else {
@@ -258,6 +273,7 @@ replaid.scse <- function(X, matG, removeLog2=NULL, scoreMean=FALSE) {
       X[nz] <- 2**X[nz]  ## undo only non-zeros as in scSE code
     }
   }
+
   if(scoreMean) {
     ## modified scSE with Mean-statistics    
     sX <- plaid(X, matG, stats="mean", normalize=FALSE)
@@ -269,8 +285,12 @@ replaid.scse <- function(X, matG, removeLog2=NULL, scoreMean=FALSE) {
     sumx <- Matrix::colSums(abs(X)) + 1e-8
     sX <- sX %*% Matrix::Diagonal(x = 1/sumx) * 100      
   }
+
   colnames(sX) <- colnames(X)
-  as.matrix(sX)
+  sX <- as.matrix(sX)
+
+  return(sX)
+
 }
 
 
@@ -296,9 +316,10 @@ replaid.scse <- function(X, matG, removeLog2=NULL, scoreMean=FALSE) {
 #' @export
 replaid.sing <- function(X, matG) {
   ## the ties.method=min is important for exact replication
-  rX <- colranks(X, ties.method="min")
+  rX <- colranks(X, ties.method = "min")
   rX <- rX / nrow(X) - 0.5
-  plaid(rX, matG=matG, normalize=FALSE)
+  gsetX <- plaid(rX, matG = matG, normalize = FALSE)
+  return(gsetX)
 }
 
 #' Fast calculation of ssGSEA
@@ -324,8 +345,8 @@ replaid.sing <- function(X, matG) {
 #' @param alpha Weighting factor for exponential weighting of ranks
 #' 
 #' @export
-replaid.ssgsea <- function(X, matG, alpha=0) {
-  rX <- colranks(X, keep.zero=TRUE, ties.method="average")
+replaid.ssgsea <- function(X, matG, alpha = 0) {
+  rX <- colranks(X, keep.zero = TRUE, ties.method = "average")
   if(alpha != 0) {
     ## This is not exactly like original formula. Not sure how to
     ## efficiently implement original rank weighting
@@ -333,7 +354,8 @@ replaid.ssgsea <- function(X, matG, alpha=0) {
   }
   rX <- rX / max(rX) - 0.5
   dimnames(rX) <- dimnames(X)
-  plaid(rX, matG, stats="mean", normalize=TRUE)
+  gsetX <- plaid(rX, matG, stats = "mean", normalize = TRUE)
+  return(gsetX)
 }
 
 #' Fast calculation of UCell
@@ -352,14 +374,11 @@ replaid.ssgsea <- function(X, matG, alpha=0) {
 #' 
 #' @param X Gene or protein expression matrix. Generally log
 #'   transformed. See details. Genes on rows, samples on columns.
-#' @param matG Gene sets sparse matrix. Genes on rows, gene sets on
-#'   columns.
-#' @param rmax Rank truncation threshold (see original
-#'   publication). Default rmax=1500.
-#' 
+#' @param matG Gene sets sparse matrix. Genes on rows, gene sets on columns.
+#' @param rmax Rank threshold (see Ucell paper). Default rmax = 1500.
 #' @export
-replaid.ucell <- function(X, matG, rmax=1500) {
-  rX <- colranks(X, ties.method="average")
+replaid.ucell <- function(X, matG, rmax = 1500) {
+  rX <- colranks(X, ties.method = "average")
   rX <- pmin( max(rX) - rX, rmax+1 )
   S <- plaid(rX, matG)
   S <- 1 - S / rmax + (Matrix::colSums(matG!=0)+1)/(2*rmax)
@@ -382,16 +401,15 @@ replaid.ucell <- function(X, matG, rmax=1500) {
 #' 
 #' @param X Gene or protein expression matrix. Generally log
 #'   transformed. See details. Genes on rows, samples on columns.
-#' @param matG Gene sets sparse matrix. Genes on rows, gene sets on
-#'   columns.
-#' @param aucMaxRank Rank threshold (see original
-#'   publication). Default aucMaxRank=0.05*nrow(X).
+#' @param matG Gene sets sparse matrix. Genes on rows, gene sets on columns.
+#' @param aucMaxRank Rank threshold (see AUCell paper). Default aucMaxRank = 0.05*nrow(X).
 #' 
 #' @export
-replaid.aucell <- function(X, matG, aucMaxRank=ceiling(0.05*nrow(X))) {
-  rX <- colranks(X, ties.method="average")
+replaid.aucell <- function(X, matG, aucMaxRank = ceiling(0.05*nrow(X))) {
+  rX <- colranks(X, ties.method = "average")
   ww <- 1.08*pmax((rX - (max(rX) - aucMaxRank)) / aucMaxRank, 0)
-  plaid(ww, matG, stats="mean")
+  gsetX <- plaid(ww, matG, stats = "mean")
+  return(gsetX)
 }
 
 #' Fast approximation of GSVA
@@ -421,9 +439,10 @@ replaid.aucell <- function(X, matG, aucMaxRank=ceiling(0.05*nrow(X))) {
 #'   tau=0.
 #' 
 #' @export
-replaid.gsva <- function(X, matG, tau=0, rowtf=c("z","ecdf")[1]) {
+replaid.gsva <- function(X, matG, tau = 0, rowtf = c("z", "ecdf")[1]) {
   rowtf <- rowtf[1]
-  if(rowtf=="z") {
+
+  if(rowtf == "z") {
     ## Faster approximation of relative activation
     zX <- (X - Matrix::rowMeans(X)) / (1e-8 + mat.rowsds(X))
   } else if(rowtf=='ecdf') {
@@ -432,7 +451,8 @@ replaid.gsva <- function(X, matG, tau=0, rowtf=c("z","ecdf")[1]) {
   } else {
     stop("Error: unknown row transform",rowtf)
   }
-  rX <- colranks(zX, signed=TRUE, ties.method="average")
+
+  rX <- colranks(zX, signed = TRUE, ties.method = "average")
   rX <- rX / max(abs(rX))
   if(tau > 0) {
     ## Note: This is not exactly like original formula. Not sure how
@@ -440,27 +460,31 @@ replaid.gsva <- function(X, matG, tau=0, rowtf=c("z","ecdf")[1]) {
     rX <- sign(rX) * abs(rX)^(1 + tau)
   }
   dimnames(rX) <- dimnames(X)
-  plaid(rX, matG)
+  gsetX <- plaid(rX, matG)
+
+  return(gsetX)
+
 }
 
 mat.rowsds <- function(X) {
-  if(inherits(X,"CsparseMatrix")) {
+  if(inherits(X,"CsparseMatrix"))
     return(sparseMatrixStats::rowSds(X))
-  }
-  matrixStats::rowSds(X)  
+  sdx <- matrixStats::rowSds(X)
+  return(sdx)
 }
 
 ##----------------------------------------------------------------
 ##-------------------- UTILITIES ---------------------------------
 ##----------------------------------------------------------------
 
-matrix_ttest <- function(F, G, method="two") {
+matrix_ttest <- function(F, G, method = "two") {
   t_matrix <- matrix(NA, ncol(G), NCOL(F))
   p_matrix <- matrix(NA, ncol(G), NCOL(F))
   f_matrix <- matrix(NA, ncol(G), NCOL(F))  
   dimnames(t_matrix) <- list(colnames(G),colnames(F))
   dimnames(p_matrix) <- list(colnames(G),colnames(F))
   dimnames(f_matrix) <- list(colnames(G),colnames(F))
+
   i=1
   F2 <- F
   nf <- NCOL(F)
@@ -479,7 +503,10 @@ matrix_ttest <- function(F, G, method="two") {
       f_matrix[i,] <- diff[1:nf]
     }
   }
-  list(diff = f_matrix, stats = t_matrix, pvalue=p_matrix)
+
+  LL <- list(diff = f_matrix, stats = t_matrix, pvalue = p_matrix)
+  return(LL)
+
 }
 
 #' Normalize column medians of matrix
@@ -527,22 +554,26 @@ normalize_medians <- function(x, ignore.zero = NULL) {
 #' @param ties.method Character Choice of ties.method
 #' 
 #' @export
-colranks <- function(X, sparse=NULL, signed=FALSE, keep.zero=FALSE,
+colranks <- function(X,
+                     sparse = NULL,
+                     signed = FALSE,
+                     keep.zero = FALSE,
                      ties.method = "average") {
-  if(is.null(sparse)) {
+
+  if(is.null(sparse))
     sparse <- inherits(X,"CsparseMatrix")
-  }
+
   if(sparse) {
     X <- methods::as(X, "CsparseMatrix")
     if(keep.zero) {
-      rX <- sparse_colranks(X, signed=signed, ties.method=ties.method)
+      rX <- sparse_colranks(X, signed = signed, ties.method = ties.method)
     } else {
       if(signed) {
         sign.X <- sign(X)
-        abs.rX <- Matrix::t(sparseMatrixStats::colRanks(abs(X), ties.method=ties.method))
+        abs.rX <- Matrix::t(sparseMatrixStats::colRanks(abs(X), ties.method = ties.method))
         rX <- abs.rX * sign.X
       } else {
-        rX <- Matrix::t(sparseMatrixStats::colRanks(X, ties.method=ties.method))
+        rX <- Matrix::t(sparseMatrixStats::colRanks(X, ties.method = ties.method))
       }
     }
   } else {
@@ -554,7 +585,9 @@ colranks <- function(X, sparse=NULL, signed=FALSE, keep.zero=FALSE,
       rX <- Matrix::t(matrixStats::colRanks(as.matrix(X), ties.method=ties.method))
     }
   }
-  rX
+
+  return(rX)
+
 }
 
 #' Compute columm ranks for sparse matrix. Internally used by colranks()
@@ -563,7 +596,7 @@ colranks <- function(X, sparse=NULL, signed=FALSE, keep.zero=FALSE,
 #' @param signed Logical indicating using signed ranks
 #' @param ties.method Character Choice of ties.method
 #' 
-sparse_colranks <- function(X, signed=FALSE, ties.method="average") {
+sparse_colranks <- function(X, signed = FALSE, ties.method = "average") {
   ## https://stackoverflow.com/questions/41772943
   X <- methods::as(X, "CsparseMatrix")
   n <- diff(X@p)  ## number of non-zeros per column
@@ -576,9 +609,12 @@ sparse_colranks <- function(X, signed=FALSE, ties.method="average") {
   } else {
     rnk <- unlist(lapply(lst, rank, ties.method=ties.method))  
   }
+
   rX <- X  ## copy sparse matrix
   rX@x <- rnk  ## replace non-zero elements with rank
-  rX
+
+  return(rX)
+
 }
 
 ##-------------------------------------------------------------
