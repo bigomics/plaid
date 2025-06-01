@@ -579,10 +579,10 @@ colranks <- function(X,
   } else {
     if(signed) {
       sign.X <- sign(X)
-      abs.rX <- Matrix::t(matrixStats::colRanks(as.matrix(abs(X)), ties.method=ties.method))
+      abs.rX <- Matrix::t(matrixStats::colRanks(as.matrix(abs(X)), ties.method = ties.method))
       rX <- sign.X * abs.rX
     } else {
-      rX <- Matrix::t(matrixStats::colRanks(as.matrix(X), ties.method=ties.method))
+      rX <- Matrix::t(matrixStats::colRanks(as.matrix(X), ties.method = ties.method))
     }
   }
 
@@ -593,7 +593,7 @@ colranks <- function(X,
 #' Compute columm ranks for sparse matrix. Internally used by colranks()
 #'
 #' @param X Input matrix
-#' @param signed Logical indicating using signed ranks
+#' @param signed Logical: use or not signed ranks
 #' @param ties.method Character Choice of ties.method
 #' 
 sparse_colranks <- function(X, signed = FALSE, ties.method = "average") {
@@ -604,10 +604,10 @@ sparse_colranks <- function(X, signed = FALSE, ties.method = "average") {
   ## column-wise ranking and result collapsing
   if(signed) {
     lst.sign <- lapply(lst, sign)
-    lst.rnk  <- lapply(lst, function(x) rank(abs(x),ties.method=ties.method))
-    rnk <- unlist(mapply('*', lst.sign, lst.rnk, SIMPLIFY=FALSE))  
+    lst.rnk  <- lapply(lst, function(x) rank(abs(x),ties.method = ties.method))
+    rnk <- unlist(mapply('*', lst.sign, lst.rnk, SIMPLIFY = FALSE))  
   } else {
-    rnk <- unlist(lapply(lst, rank, ties.method=ties.method))  
+    rnk <- unlist(lapply(lst, rank, ties.method = ties.method))  
   }
 
   rX <- X  ## copy sparse matrix
