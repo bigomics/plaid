@@ -3,86 +3,71 @@
 ## Copyright (c) 2018-2025 BigOmics Analytics SA. All rights reserved.
 ##
 
-
-#' Compute plaid single-sample enrichment score 
+#' Compute PLAID single-sample enrichment score 
 #'
 #' @description Compute single-sample geneset expression as the
-#'   average log-ratio of genes in the geneset. Requires
-#'   log-expression matrix X and (sparse) geneset matrix matG. If you
-#'   have gene sets as a gmt list, please convert it first using the
-#'   function `gmt2mat()`.
+#'   average log-ratio of genes in the geneset. Requires log-expression
+#'   matrix X and (sparse) geneset matrix matG. If you have gene sets
+#'   as a gmt list, please convert it first using the function `gmt2mat()`.
 #'
-#' @details Plaid needs the gene sets as sparse matrix. If you have
+#' @details PLAID needs the gene sets as sparse matrix. If you have
 #'   your collection of gene sets a a list, we need first to convert
 #'   the gmt list to matrix format.
 #' 
-#' We recommend to run Plaid on the log transformed expression matrix,
+#' @details We recommend to run PLAID on the log transformed expression matrix,
 #' not on the counts, as the average in the logarithmic space is more
 #' robust and is in concordance to calculating the geometric mean.
 #'
-#' It is not necessary to normalize your expression matrix before
-#' running plaid because plaid normalizes the enrichment scores
-#' afterwards. However, again, log transformation is recommended.
+#' @details It is not necessary to normalize your expression matrix before
+#' running PLAID because PLAID performs median normalization of the
+#' enrichment scores afterwards.
 #'
-#' It is recommended to keep the expression matrix sparse as much as
-#' possible because plaid extensively take advantage of sparse matrix
-#' computations. But even for dense matrices plaid is fast.
+#' @details It is recommended to use sparse matrix as PLAID relies on
+#' sparse matrix computations. But, PLAID is also fast for dense matrices.
 #'
-#' Notice that by default plaid performs median normalization of the
-#' final results. That also means that it is not necessary to
-#' normalize your expression matrix before running plaid. However,
-#' generally, log transformation is recommended.
+#' @details PLAID can also be run on the ranked matrix. This corresponds to
+#' the singscore (Fouratan et al., 2018). PLAID can also be run on
+#' the (non-logarithmic) counts which can be used to calculate the
+#' scSE score (Pont et al., 2019).
 #'
-#' Plaid can also be run on the ranked matrix, we will see later that
-#' this corresponds to the singscore (Fouratan et al., 2018). Or plaid
-#' could be run on the (non-logarithmic) counts which can be used to
-#' calculate the scSE score (Pont et al., 2019).
+#' @details PLAID is fast and memery efficient because it uses efficient
+#' sparse matrix computation. When input matrix is very large, PLAID
+#' performs 'chunked' computation by splitting the matrix in chunks.
 #'
-#' Plaid is fast and memery efficient because it uses very efficient
-#' sparse matrix computation in the back. For very large `X`, plaid
-#' uses chunked computation by splitting the matrix in chunks to avoid
-#' index overflow. Should you encounter errors, please compute your
-#' dataset by subsetting manually the expression matrix and/or gene
-#' sets.
-#'
-#' Although `X` and `matG` are generally very sparse, be aware that
-#' the result matrix `gsetX` generally is dense and therefore can
-#' become very large. If you would want to compute the score of 10.000
-#' gene sets on a million of cells this would create a large 10.000 x
-#' 1.000.000 dense matrix which requires about 75GB of memory.
-#'
+#' @details Although `X` and `matG` are generally sparse, the result
+#' matrix `gsetX` generally is dense and can thus be very large.
+#' Example: computing gene set scores for 10K gene sets on 1M cells
+#' will create a 10K x 1M dense matrix which requires ~75GB memory.
 #' 
-#' @param X Gene or protein expression matrix. Generally log
-#'   transformed. See details. Genes on rows, samples on columns.
-#' @param matG Gene sets sparse matrix. Genes on rows, gene sets on
-#'   columns.
-#' @param stats Score computation as mean or sum of intensity (default
-#'   'mean').
-#' @param chunk Logical for whether using chunks for large matrices
-#'   (default NULL for autodetect).
-#' @param normalize Logical for whether to median normalize results or
-#'   not (default TRUE).
+#' @param X Log-transformed expr. matrix. Genes on rows, samples on columns.
+#' @param matG Gene sets sparse matrix. Genes on rows, gene sets on columns.
+#' @param stats Score computation stats: mean or sum of intensity. Default 'mean'.
+#' @param chunk Logical: use chunks for large matrices. Default 'NULL' for autodetect.
+#' @param normalize Logical: median normalize results or not. Default 'TRUE'.
 #'
-#' @return Matrix containing single-sample enrichment scores. Gene
-#'   sets on rows, samples on columns.
+#' @return Matrix of single-sample enrichment scores.
+#' Gene sets on rows, samples on columns.
 #' 
 #' @examples
 #' library(plaid)
-#' load(system.file("extdata", "pbmc3k-50cells.rda", package = "plaid"))
-#' hallmarks <- system.file("extdata", "hallmarks.gmt", package = "plaid")
+#' load(system.file("extdata", "pbmc3k-50cells.rda", package = "PLAID"))
+#' hallmarks <- system.file("extdata", "hallmarks.gmt", package = "PLAID")
 #' gmt <- read.gmt(hallmarks)
 #' matG <- gmt2mat(gmt)
 #' gsetX <- plaid(X, matG)
 #'
 #' @export
 plaid <- function(X, matG, stats=c("mean","sum"), chunk=NULL, normalize=TRUE) {
+
   stats <- stats[1]
   if (NCOL(X) == 1) X <- cbind(X)
+
   gg <- intersect(rownames(X), rownames(matG))
   if (length(gg) == 0) {
-    message("[plaid] ERROR. no overlapping features")
+    message("[PLAID] ERROR. No overlapping features.")
     return(NULL)
   }
+
   X <- X[gg, , drop = FALSE]
   matG <- matG[gg, , drop = FALSE]
   G <- 1 * (matG != 0)
@@ -90,13 +75,15 @@ plaid <- function(X, matG, stats=c("mean","sum"), chunk=NULL, normalize=TRUE) {
     sumG <- 1e-8 + Matrix::colSums(G, na.rm = TRUE)
     G <- Matrix::colScale(G, 1 / sumG)
   }
-  ## This single line calcules the plaid score
+
+  ## Calculates PLAID score
   gsetX <- chunked_crossprod(G, X, chunk=NULL)
   gsetX <- as.matrix(gsetX)
-  if(normalize) {
-    gsetX <- normalize_medians(gsetX, ignore.zero=NULL)
-  }
+
+  if(normalize) gsetX <- normalize_medians(gsetX)
+ 
   return(gsetX)
+
 }
 
 #' Chunked computation of cross product
@@ -117,20 +104,23 @@ chunked_crossprod <- function(x, y, chunk=NULL) {
     Int_max <- .Machine$integer.max
     chunk <- round(0.8 * Int_max / ncol(x))
   }
-  if(ncol(y) < chunk) {
-    return(Matrix::crossprod(x, y))
-  }
+
+  if(ncol(y) < chunk) return(Matrix::crossprod(x, y))
+ 
   message("[chunked_crossprod] chunked compute: chunk = ", chunk)
   k <- ceiling(ncol(y) / chunk)
   gsetX <- matrix(NA, nrow=ncol(x), ncol=ncol(y),
     dimnames=list(colnames(x),colnames(y)))
+
   i=1
   for(i in 1:k) {
     jj <- c(((i-1)*chunk+1):min(ncol(y),(i*chunk)))
     xy <- Matrix::crossprod(x, y[,jj])
     gsetX[,jj] <- as.matrix(xy)
   }
-  gsetX
+
+  return(gsetX)
+
 }
 
 
@@ -150,7 +140,7 @@ chunked_crossprod <- function(x, y, chunk=NULL) {
 #' @param tests Character array indicating which tests to perform.
 #' 
 #' @export
-plaid.test <- function(X, y, G, gsetX, tests = c("one","lm"), sort.by='p.meta') {
+plaid.test <- function(X, y, G, gsetX, tests = c("one", "lm"), sort.by = 'p.meta') {
   if(!all(unique(y) %in% c(0,1))) stop("elements of y must be 0 or 1")
   if(is.list(G)) {
     message("[plaid.test] converting gmt to sparse matrix...")
@@ -502,22 +492,27 @@ matrix_ttest <- function(F, G, method="two") {
 #'   exclude for median calculation
 #'
 #' @export
-normalize_medians <- function(x, ignore.zero=NULL) {
-  if(is.null(ignore.zero)) {
-    ignore.zero <- (min(x,na.rm=TRUE)==0)
-  }
+normalize_medians <- function(x, ignore.zero = NULL) {
+
+  if(is.null(ignore.zero))
+    ignore.zero <- (min(x,na.rm = TRUE) == 0)
+
   x <- as.matrix(x)
+
   if(ignore.zero) {
     zx <- x
     zx[Matrix::which(x==0)] <- NA
     #medx <- Rfast::colMedians(zx, na.rm=TRUE)
-    medx <- matrixStats::colMedians(zx, na.rm=TRUE)    
+    medx <- matrixStats::colMedians(zx, na.rm = TRUE)    
     medx[is.na(medx)] <- 0
   } else {
     #medx <- Rfast::colMedians(x, na.rm=TRUE)
-    medx <- matrixStats::colMedians(x, na.rm=TRUE)    
+    medx <- matrixStats::colMedians(x, na.rm = TRUE)    
   }
-  sweep(x, 2, medx, '-') + mean(medx, na.rm=TRUE)
+
+  nx <- sweep(x, 2, medx, '-') + mean(medx, na.rm = TRUE)
+  return(nx)
+  
 }
 
 #' Compute columnwise ranks of matrix
