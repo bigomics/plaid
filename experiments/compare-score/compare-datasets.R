@@ -15,7 +15,7 @@ DATASETS <- c("testis50","pbmc3k","geiger","GSE10846-dlbcl",
               "tcga-brca_pub","GSE72056-scmelanoma","GSE102908-ibet")
 ds=DATASETS[2]
 
-all.methods <- c("scse","scse.mean","sing","ssgsea")
+all.methods <- c("scse","scse.mean","sing","ssgsea","gsva","aucell","ucell")
 method="sing"
 method="ssgsea"
 
@@ -72,6 +72,28 @@ for(method in all.methods) {
       G2 <- plaid::plaid(rX, matG)
       method1 = "ssGSEA"
       method2 = "replaid.ssgsea"
+    }
+    if(method == "gsva") {
+      ##G1 <- gset.gsva(X, gmt, method="ssgsea")
+      time0 <- peakRAM::peakRAM( G1 <- run.gsva(X, gmt, tau=0) )
+      time1 <- peakRAM::peakRAM( G2 <- replaid.gsva(X, matG))
+      method1 = "GSVA"
+      method2 = "replaid.gsva"
+    }
+    if(method == "ucell") {
+      time0 <- peakRAM::peakRAM(
+        G1 <- t(UCell::ScoreSignatures_UCell(X, gmt))  ## needs logx
+      )
+      rownames(G1) <- sub("_UCell$","",rownames(G1))
+      time1 <- peakRAM::peakRAM( G2 <- replaid.ucell(X, matG))
+      method1 = "UCell"
+      method2 = "replaid.ucell"
+    }
+    if(method == "aucell") {
+      time0 <- peakRAM::peakRAM(G1 <- AUCell::getAUC(AUCell::AUCell_run(X, gmt)))
+      time1 <- peakRAM::peakRAM(G2 <- replaid.aucell(X, matG) )
+      method1 = "AUCell"
+      method2 = "replaid.aucell"
     }
     
     gg <- intersect(rownames(G1),rownames(G2))

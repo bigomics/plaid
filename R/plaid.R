@@ -134,96 +134,6 @@ chunked_crossprod <- function(x, y, chunk=NULL) {
 }
 
 
-#' Statistical testing of differentially enrichment
-#'
-#' This function performs statistical testing for differential
-#' enrichment using plaid
-#'
-#' @param X Matrix of log expression value
-#' @param y Vector of 0s and 1s indicating group
-#' @param G Sparse matrix of gene sets. Non-zero entry indicates
-#'   gene/feature is part of gene sets. Features on rows, gene sets on
-#'   columns.
-#' @param gsetX Gene set score matrix which is output of
-#'   `plaid()`. Can be NULL in that case it will be recomputed from X
-#'   and G (default required).
-#' @param tests Character array indicating which tests to perform.
-#' 
-#' @export
-plaid.test <- function(X, y, G, gsetX, tests = c("one","lm"), sort.by='p.meta') {
-  if(!all(unique(y) %in% c(0,1))) stop("elements of y must be 0 or 1")
-  if(is.list(G)) {
-    message("[plaid.test] converting gmt to sparse matrix...")
-    G <- gmt2mat(G)
-  } else {
-    message("[plaid.test] sparse matrix provided")
-  }
-  p1=p2=p3=NULL
-  df1=df2=df3=NULL
-  gg <- intersect(rownames(G),rownames(X))
-  X <- X[gg,]
-  G <- G[gg,]
-  
-  m1 <- Matrix::rowMeans(X[,y==1,drop=FALSE])
-  m0 <- Matrix::rowMeans(X[,y==0,drop=FALSE])
-  fc <- m1 - m0
-  
-  if("one" %in% tests) {
-    mt1 <- matrix_ttest(fc, G, method="one")
-    p1 <- mt1$pvalue[,1]
-    df1 <- mt1$diff[,1]
-  }
-  if("two" %in% tests) {
-    mt2 <- matrix_ttest(fc, G, method="two")
-    p2 <- mt2$pvalue[,1]
-    df2 <- mt2$diff[,1]        
-  }
-  if("lm" %in% tests) {
-    if(is.null(gsetX)) {      
-      message("[plaid.test] computing plaid scores...")
-      gsetX <- plaid(X, G)
-    }
-    message("[plaid.test] computing t-tests...")
-    res.lm  <- Rfast::ttests( Matrix::t(gsetX), ina=y+1)
-    p3 <- res.lm[,"pvalue"]
-    df3 <- rowMeans(gsetX[,y==1]) - rowMeans(gsetX[,y==0])
-    names(p3) <- rownames(gsetX)
-    names(df3) <- rownames(gsetX)
-  }
-  
-  P <- list("one"=p1,"two"=p2,"lm"=p3)
-  P <- P[!sapply(P,is.null)]
-  F <- list("one"=df1,"two"=df2,"lm"=df3)
-  F <- F[!sapply(F,is.null)]
-  
-  gg <- Reduce(intersect, lapply(P, names))
-  P <- lapply(P, function(x) x[gg])
-  F <- lapply(F, function(x) x[gg])
-  P <- do.call( cbind, P)
-  F <- do.call( cbind, F)
-  P[is.na(P)] <- 1
-  ##F[is.na(F)] <- 0
-  gsetFC <- rowMeans(F)
-  
-  if(NCOL(P)>1) {
-    pmeta <- apply(P, 1, function(x) metap::sumz(x)$p)
-  } else {
-    pmeta <- P[,1]
-  }
-  colnames(P) <- paste0("p.",colnames(P))
-  qmeta <- stats::p.adjust(pmeta, method="fdr")
-  res <- cbind(
-    gsetFC = gsetFC,
-    pvalues = P,
-    p.meta = pmeta,
-    q.meta = qmeta    
-  )
-  if(sort.by %in% colnames(res)) {
-    res <- res[order(res[,sort.by]),]
-  }
-  res
-}
-
 
 #' Fast calculation of scSE score
 #'
@@ -461,36 +371,178 @@ mat.rowsds <- function(X) {
 }
 
 ##----------------------------------------------------------------
+##-------------------- STAT TEST ---------------------------------
+##----------------------------------------------------------------
+
+#' Statistical testing of differentially enrichment
+#'
+#' This function performs statistical testing for differential
+#' enrichment using plaid
+#'
+#' @param X Matrix of log expression value
+#' @param y Vector of 0s and 1s indicating group
+#' @param G Sparse matrix of gene sets. Non-zero entry indicates
+#'   gene/feature is part of gene sets. Features on rows, gene sets on
+#'   columns.
+#' @param gsetX Gene set score matrix which is output of
+#'   `plaid()`. Can be NULL in that case it will be recomputed from X
+#'   and G (default required).
+#' @param tests Character array indicating which tests to perform.
+#' 
+#' @export
+plaid.test <- function(X, y, G, gsetX, tests = c("one","two","lm"),
+                       metap.method="fisher", sort.by='p.meta') {
+  if(!all(unique(y) %in% c(0,1))) stop("elements of y must be 0 or 1")
+  if(is.list(G)) {
+    message("[plaid.test] converting gmt to sparse matrix...")
+    G <- gmt2mat(G)
+  } else {
+    ## message("[plaid.test] sparse matrix provided")
+  }
+  p1=p2=p3=NULL
+  df1=df2=df3=NULL
+  gg <- intersect(rownames(G),rownames(X))
+  X <- X[gg,]
+  G <- G[gg,]
+  
+  m1 <- Matrix::rowMeans(X[,y==1,drop=FALSE])
+  m0 <- Matrix::rowMeans(X[,y==0,drop=FALSE])
+  fc <- m1 - m0
+  
+  if("one" %in% tests) {
+    message("[plaid.test] computing one-sample t-tests on logFC")    
+    mt1 <- matrix_onesample_ttest(fc, G)
+    p1 <- mt1$p[,1]
+    df1 <- mt1$mean[,1]
+  }
+  if("two" %in% tests) {
+    message("[plaid.test] computing two-sample t-tests on logFC")
+    mt2 <- matrix_twosample_ttest(fc, G)
+    p2 <- mt2$p[,1]
+    df2 <- mt2$diff[,1]        
+  }
+  if("lm" %in% tests) {
+    if(is.null(gsetX)) {      
+      message("[plaid.test] computing plaid scores...")
+      gsetX <- plaid(X, G)
+    }
+    message("[plaid.test] computing gsetX t-tests")
+    res.lm  <- Rfast::ttests( Matrix::t(gsetX), ina=y+1)
+    p3 <- res.lm[,"pvalue"]
+    df3 <- rowMeans(gsetX[,y==1]) - rowMeans(gsetX[,y==0])
+    names(p3) <- rownames(gsetX)
+    names(df3) <- rownames(gsetX)
+  }
+  
+  P <- list("one"=p1,"two"=p2,"lm"=p3)
+  P <- P[!sapply(P,is.null)]
+  F <- list("one"=df1,"two"=df2,"lm"=df3)
+  F <- F[!sapply(F,is.null)]
+  
+  for(i in 1:length(P)) {
+    P1 <- P[[i]]
+    P1[is.na(P1)] <- 1
+    P1 <- pmin(pmax(P1, 1e-99), 1-1e-99)
+    P[[i]] <- P1
+  }
+
+  gg <- Reduce(intersect, lapply(P, names))
+  P <- lapply(P, function(x) x[gg])
+  F <- lapply(F, function(x) x[gg])
+  F <- do.call( cbind, F)
+  ##F[is.na(F)] <- 0
+  gsetFC <- rowMeans(F)
+  
+  if(length(P)>1) {
+    message("[plaid.test] computing meta-p...")
+    ##pmeta <- apply(P, 1, function(x) metap::sumz(x)$p)
+    pmeta <- matrix_combine_p(P, method=metap.method) 
+  } else {
+    pmeta <- P[[1]]
+  }
+  P <- do.call(cbind, P)
+  colnames(P) <- paste0("p.",colnames(P))
+  qmeta <- stats::p.adjust(pmeta, method="fdr")
+  res <- cbind(
+    gsetFC = gsetFC,
+    pvalues = P,
+    p.meta = pmeta,
+    q.meta = qmeta    
+  )
+  if(sort.by %in% colnames(res)) {
+    res <- res[order(res[,sort.by]),]
+  }
+  res
+}
+
+matrix_onesample_ttest <- function(F, G) {  
+  sumG <- Matrix::colSums(G!=0)
+  sum_sq  <- Matrix::crossprod(G!=0, F^2) 
+  meanx <- Matrix::crossprod(G!=0, F) / (1e-8 + sumG)
+  sdx   <-  sqrt( (sum_sq - meanx^2 * sumG) / (sumG - 1))
+  f_stats <- meanx
+  t_stats <- meanx / (1e-8 + sdx) * sqrt(sumG)
+  p_stats <- apply( abs(t_stats), 2, function(tv)
+    2*pt(tv,df=pmax(sumG-1,1),lower.tail=FALSE))
+  list(mean = as.matrix(f_stats), t = as.matrix(t_stats), p = p_stats)  
+}
+
+matrix_twosample_ttest <- function(F, G) {
+  if(is.vector(F)) F <- cbind(F)
+  if(nrow(F)!=nrow(G)) stop("dimension mismatch")
+  ## see e.g. https://people.umass.edu/bwdillon/.../TwoSampleT-Test.html
+  sum1 <- Matrix::colSums(G!=0)
+  # sum0 <- Matrix::colSums(G==0)  
+  sum0 <- nrow(G) - sum1
+
+  F2 <- F^2
+  sum.F2 <- Matrix::colSums(F2)
+  ssq1 <- Matrix::crossprod(G!=0, F2)     
+  #ssq0 <- Matrix::crossprod(G==0, F2)
+  ssq0 <- sweep(-ssq1, 2, sum.F2, '+') # faster
+
+  sum.F <- Matrix::colSums(F)
+  mean1 <- Matrix::crossprod(G!=0, F) 
+  #mean0 <- Matrix::crossprod(G==0, F) 
+  mean0 <- sweep(-mean1, 2, sum.F, '+') 
+  mean1 <- mean1 / (1e-8 + sum1)
+  mean0 <- mean0 / (1e-8 + sum0)    
+  
+  var0 <-  (ssq0 - mean0^2 * sum0) / (sum0 - 1)
+  var1 <-  (ssq1 - mean1^2 * sum1) / (sum1 - 1)  
+  varsum <- ( var0 / sum0 + var1 / sum1 )
+  dof <- varsum^2 / ( var0 / sum0 * (sum0-1) + var1 / sum1 * (sum1 - 1) )
+  ## NEED CHECKING!!!!
+  f_stats <- mean1 - mean0
+  t_stats <- f_stats / sqrt(varsum)
+  p_stats <- sapply( 1:NCOL(F), function(i)
+    2 * pt( abs(t_stats[,i]), df = pmax(dof[,i],1), lower.tail=FALSE))
+  res <- list(diff = as.matrix(f_stats), t = as.matrix(t_stats), p = p_stats)
+  res
+}
+
+matrix_combine_p <- function(plist, method='fisher') {
+  if(method %in% c("fisher","sumlog")) {
+    chisq <- (-2) * Reduce('+', lapply(plist,log))
+    df <- 2 * length(plist)
+    pv <- pchisq(chisq, df, lower.tail=FALSE)
+  } else if(method %in% c("stouffer","sumz")) {
+    np <- length(plist)
+    zz <- lapply(plist, qnorm, lower.tail=FALSE) 
+    zz <- Reduce('+', zz) / sqrt(np)
+    pv <- pnorm(zz, lower.tail=FALSE)
+  } else {
+    stop("Invalid method: ",method)
+  }
+  dimnames(pv) <- dimnames(plist[[1]])
+  return(pv)
+}
+
+
+##----------------------------------------------------------------
 ##-------------------- UTILITIES ---------------------------------
 ##----------------------------------------------------------------
 
-matrix_ttest <- function(F, G, method="two") {
-  t_matrix <- matrix(NA, ncol(G), NCOL(F))
-  p_matrix <- matrix(NA, ncol(G), NCOL(F))
-  f_matrix <- matrix(NA, ncol(G), NCOL(F))  
-  dimnames(t_matrix) <- list(colnames(G),colnames(F))
-  dimnames(p_matrix) <- list(colnames(G),colnames(F))
-  dimnames(f_matrix) <- list(colnames(G),colnames(F))
-  i=1
-  F2 <- F
-  nf <- NCOL(F)
-  if(NCOL(F)==1) F2 <- cbind(F,0) ## Rfast::ttest needs matrix
-  for(i in 1:ncol(G)) {
-    grp <- 2 - 1*(G[,i]!=0)
-    if(method=="two") {
-      tt <- try(Rfast::ttests(F2, ina=grp),silent=TRUE)
-    } else {
-      tt <- try(Rfast::ttest(F2[grp==1,], m=rep(0,ncol(F2))),silent=TRUE)
-    }
-    if(!"try-error" %in% class(tt)) {
-      diff <- colMeans(F2[grp==1,,drop=FALSE]) - colMeans(F2[grp==2,,drop=FALSE] )
-      t_matrix[i,] <- tt[1:nf,"stat"]
-      p_matrix[i,] <- tt[1:nf,"pvalue"]
-      f_matrix[i,] <- diff[1:nf]
-    }
-  }
-  list(diff = f_matrix, stats = t_matrix, pvalue=p_matrix)
-}
 
 #' Normalize column medians of matrix
 #'

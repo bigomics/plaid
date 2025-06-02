@@ -10,6 +10,12 @@
 ##
 ##
 
+if(!require(AUCell)) BiocManager::install("AUCell")
+if(!require(UCell)) BiocManager::install("UCell")
+if(!require(singscore)) BiocManager::install("singscore")
+if(!require(GSVA)) BiocManager::install("GSVA")
+
+
 ##----------------------------------------------------------------
 ##-------------------- RUN OTHER METHODS -------------------------
 ##----------------------------------------------------------------
@@ -230,9 +236,26 @@ gset.rankcor <- function(rnk, gset, compute.p = FALSE, use.rank = TRUE) {
   df
 }
 
+run.gsva <- function(X, gmt, tau=1) {
+  gsvapar <- GSVA::gsvaParam(X, gmt, tau=tau, maxDiff=TRUE)
+  GSVA::gsva(gsvapar, verbose = FALSE)
+}
+
 run.ssgsea <- function(X, gmt, alpha=0.25) {
   ssgsea.par = GSVA::ssgseaParam(X, gmt, alpha=alpha, normalize=TRUE)
   GSVA::gsva(ssgsea.par, verbose = FALSE)
+}
+
+run.blitzgsea <- function(fc, gmt) {
+  reticulate::py_require("blitzgsea")
+  blitz <- try(reticulate::import("blitzgsea"))
+  if(inherits(blitz,"try-error")) {
+    message("Error: blitzgsea not installed")
+    return(NULL)
+  }
+  df <- data.frame(names(fc),fc)
+  res <- blitz$gsea(df, gmt)
+  return(res[,1:6])
 }
 
 ##----------------------------------------------------------------
@@ -419,7 +442,6 @@ gx.limma <- function(X, pheno, B = NULL, remove.na = TRUE,
   ## unlist???
   return(top)
 }
-
 
 gsva.limma <- function(X, y, gmt, method="gsva") {
   gsetX <- gset.gsva(X, gmt, method=method)

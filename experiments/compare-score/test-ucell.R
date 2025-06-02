@@ -40,7 +40,7 @@ rX <- pmin(rX, rmax+1)
 S2 <- plaid(rX, matG)
 S2 <- 1 - S2 / rmax + (colSums(matG!=0)+1)/(2*rmax)
 
-##S2 <- replaid.ucell(X, matG, rmax=1500)
+S2 <- replaid.ucell(X, matG, rmax=1500)
 S2 <- S2[rownames(S1),]
 plot(S1[,1], S2[,1], xlab="UCell", ylab="replaid")
 

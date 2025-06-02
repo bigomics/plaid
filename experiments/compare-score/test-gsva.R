@@ -39,34 +39,49 @@ par(mfrow=c(3,3),mar=c(4,4,2,2))
 
 gsvapar <- GSVA::gsvaParam(X, gmt, tau=0, kcdf='Gaussian', maxDiff=TRUE)
 S1 <- GSVA::gsva(gsvapar, verbose = FALSE)
+gsvapar <- GSVA::gsvaParam(X, gmt, tau=1, kcdf='Gaussian', maxDiff=TRUE)
+S2 <- GSVA::gsva(gsvapar, verbose = FALSE)
 
+S3 <- replaid.gsva(X, matG, tau=0, rowtf='z')
+S4 <- replaid.gsva(X, matG, tau=0, rowtf='ecdf')
+S5 <- replaid.ssgsea(X, matG, alpha=0)
+S6 <- gset.gsva(X, gmt, method="ssgsea")
+S7 <- gset.gsva(X, gmt, method="zscore")
+
+S2 <- S2[rownames(S1),]
+S3 <- S3[rownames(S1),]
+S4 <- S4[rownames(S1),]
+S5 <- S5[rownames(S1),]
+S6 <- S6[rownames(S1),]
+S7 <- S7[rownames(S1),]
+
+## try out
 sdx <- mat.rowsds(X)
 zX <- X
 zX <- (X - Matrix::rowMeans(X)) 
-zX <- (X - Matrix::rowMeans(X)) / mat.rowsds(X)
+zX <- (X - Matrix::rowMeans(X)) / sdx
+
 zX <- t(apply(X,1,function(x) ecdf(x)(x)))
-zX <- zX * sdx
+Sx <- plaid(zX, matG)
 
 rX <- colranks(zX, signed=TRUE, ties.method="average")
 rX <- rX / max(abs(rX))
-S2 <- plaid(rX, matG)
+Sx <- plaid(rX, matG)
 
-S2 <- replaid.gsva(X, matG, tau=0, rowtf='z')
-S2 <- S2[rownames(S1),]
-plot(S1[,1], S2[,1], xlab="gsva", ylab="replaid")
-
-S3 <- replaid.gsva(X, matG, tau=0, rowtf='ecdf')
-S4 <- replaid.ssgsea(X, matG, alpha=0)
-S3 <- S3[rownames(S2),]
-S4 <- S4[rownames(S2),]
-ss <- cbind('gsva'=S1[,1], 'replaid.z'=S2[,1],
-            'replaid.ecdf'=S3[,1], 'ssgsea'=S4[,1])
-pairs(ss)
+ss <- cbind(
+  'gsva.tau0'=S1[,1],
+  'gsva.tau1'=S2[,1],  
+  'replaid.z'=S3[,1],  
+  'replaid.ecdf'=S4[,1],
+  'ssgsea'=S5[,1],
+  'gsva:ssgsea'=S6[,1],
+  'sgva:zscore'=S7[,1],
+  'test'=Sx[,1]
+)
+pairs(ss, cex=0.4)
 
 ff <- sapply(list(S1,S2,S3,S4),function(x) (x-rowMeans(x))[,1])
 pairs(ff)
-
-
 
 
 
