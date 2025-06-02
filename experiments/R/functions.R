@@ -455,13 +455,6 @@ sing.limma <- function(X, y, gmt) {
   gx.limma(gsetX, y, fdr=1, lfc=0, sort.by='none')
 }
 
-## run.avgFC <- function(fc, matG) {
-##   mt <- matrix_ttest(fc, matG)
-##   res <- cbind(fc = mt$diff, pv = mt$pvalue)
-##   colnames(res) <- c("logFC","p.value")
-##   res
-## }
-
 prepare.SCSE <- function(X, gmt, path='scse') {
   bin.exe <- "scorer_linux_x64.bin"
   if(!file.exists(file.path(path,bin.exe))) {

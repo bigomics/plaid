@@ -3,86 +3,71 @@
 ## Copyright (c) 2018-2025 BigOmics Analytics SA. All rights reserved.
 ##
 
-
-#' Compute plaid single-sample enrichment score 
+#' Compute PLAID single-sample enrichment score 
 #'
 #' @description Compute single-sample geneset expression as the
-#'   average log-ratio of genes in the geneset. Requires
-#'   log-expression matrix X and (sparse) geneset matrix matG. If you
-#'   have gene sets as a gmt list, please convert it first using the
-#'   function `gmt2mat()`.
+#'   average log-ratio of genes in the geneset. Requires log-expression
+#'   matrix X and (sparse) geneset matrix matG. If you have gene sets
+#'   as a gmt list, please convert it first using the function `gmt2mat()`.
 #'
-#' @details Plaid needs the gene sets as sparse matrix. If you have
+#' @details PLAID needs the gene sets as sparse matrix. If you have
 #'   your collection of gene sets a a list, we need first to convert
 #'   the gmt list to matrix format.
 #' 
-#' We recommend to run Plaid on the log transformed expression matrix,
+#' @details We recommend to run PLAID on the log transformed expression matrix,
 #' not on the counts, as the average in the logarithmic space is more
 #' robust and is in concordance to calculating the geometric mean.
 #'
-#' It is not necessary to normalize your expression matrix before
-#' running plaid because plaid normalizes the enrichment scores
-#' afterwards. However, again, log transformation is recommended.
+#' @details It is not necessary to normalize your expression matrix before
+#' running PLAID because PLAID performs median normalization of the
+#' enrichment scores afterwards.
 #'
-#' It is recommended to keep the expression matrix sparse as much as
-#' possible because plaid extensively take advantage of sparse matrix
-#' computations. But even for dense matrices plaid is fast.
+#' @details It is recommended to use sparse matrix as PLAID relies on
+#' sparse matrix computations. But, PLAID is also fast for dense matrices.
 #'
-#' Notice that by default plaid performs median normalization of the
-#' final results. That also means that it is not necessary to
-#' normalize your expression matrix before running plaid. However,
-#' generally, log transformation is recommended.
+#' @details PLAID can also be run on the ranked matrix. This corresponds to
+#' the singscore (Fouratan et al., 2018). PLAID can also be run on
+#' the (non-logarithmic) counts which can be used to calculate the
+#' scSE score (Pont et al., 2019).
 #'
-#' Plaid can also be run on the ranked matrix, we will see later that
-#' this corresponds to the singscore (Fouratan et al., 2018). Or plaid
-#' could be run on the (non-logarithmic) counts which can be used to
-#' calculate the scSE score (Pont et al., 2019).
+#' @details PLAID is fast and memery efficient because it uses efficient
+#' sparse matrix computation. When input matrix is very large, PLAID
+#' performs 'chunked' computation by splitting the matrix in chunks.
 #'
-#' Plaid is fast and memery efficient because it uses very efficient
-#' sparse matrix computation in the back. For very large `X`, plaid
-#' uses chunked computation by splitting the matrix in chunks to avoid
-#' index overflow. Should you encounter errors, please compute your
-#' dataset by subsetting manually the expression matrix and/or gene
-#' sets.
-#'
-#' Although `X` and `matG` are generally very sparse, be aware that
-#' the result matrix `gsetX` generally is dense and therefore can
-#' become very large. If you would want to compute the score of 10.000
-#' gene sets on a million of cells this would create a large 10.000 x
-#' 1.000.000 dense matrix which requires about 75GB of memory.
-#'
+#' @details Although `X` and `matG` are generally sparse, the result
+#' matrix `gsetX` generally is dense and can thus be very large.
+#' Example: computing gene set scores for 10K gene sets on 1M cells
+#' will create a 10K x 1M dense matrix which requires ~75GB memory.
 #' 
-#' @param X Gene or protein expression matrix. Generally log
-#'   transformed. See details. Genes on rows, samples on columns.
-#' @param matG Gene sets sparse matrix. Genes on rows, gene sets on
-#'   columns.
-#' @param stats Score computation as mean or sum of intensity (default
-#'   'mean').
-#' @param chunk Logical for whether using chunks for large matrices
-#'   (default NULL for autodetect).
-#' @param normalize Logical for whether to median normalize results or
-#'   not (default TRUE).
+#' @param X Log-transformed expr. matrix. Genes on rows, samples on columns.
+#' @param matG Gene sets sparse matrix. Genes on rows, gene sets on columns.
+#' @param stats Score computation stats: mean or sum of intensity. Default 'mean'.
+#' @param chunk Logical: use chunks for large matrices. Default 'NULL' for autodetect.
+#' @param normalize Logical: median normalize results or not. Default 'TRUE'.
 #'
-#' @return Matrix containing single-sample enrichment scores. Gene
-#'   sets on rows, samples on columns.
+#' @return Matrix of single-sample enrichment scores.
+#' Gene sets on rows, samples on columns.
 #' 
 #' @examples
 #' library(plaid)
-#' load(system.file("extdata", "pbmc3k-50cells.rda", package = "plaid"))
-#' hallmarks <- system.file("extdata", "hallmarks.gmt", package = "plaid")
+#' load(system.file("extdata", "pbmc3k-50cells.rda", package = "PLAID"))
+#' hallmarks <- system.file("extdata", "hallmarks.gmt", package = "PLAID")
 #' gmt <- read.gmt(hallmarks)
 #' matG <- gmt2mat(gmt)
 #' gsetX <- plaid(X, matG)
 #'
 #' @export
 plaid <- function(X, matG, stats=c("mean","sum"), chunk=NULL, normalize=TRUE) {
+
   stats <- stats[1]
   if (NCOL(X) == 1) X <- cbind(X)
+
   gg <- intersect(rownames(X), rownames(matG))
   if (length(gg) == 0) {
-    message("[plaid] ERROR. no overlapping features")
+    message("[plaid] ERROR. No overlapping features.")
     return(NULL)
   }
+
   X <- X[gg, , drop = FALSE]
   matG <- matG[gg, , drop = FALSE]
   G <- 1 * (matG != 0)
@@ -90,13 +75,15 @@ plaid <- function(X, matG, stats=c("mean","sum"), chunk=NULL, normalize=TRUE) {
     sumG <- 1e-8 + Matrix::colSums(G, na.rm = TRUE)
     G <- Matrix::colScale(G, 1 / sumG)
   }
-  ## This single line calcules the plaid score
+
+  ## Calculates PLAID score
   gsetX <- chunked_crossprod(G, X, chunk=NULL)
   gsetX <- as.matrix(gsetX)
-  if(normalize) {
-    gsetX <- normalize_medians(gsetX, ignore.zero=NULL)
-  }
+  
+  if(normalize) gsetX <- normalize_medians(gsetX)
+ 
   return(gsetX)
+
 }
 
 #' Chunked computation of cross product
@@ -117,23 +104,24 @@ chunked_crossprod <- function(x, y, chunk=NULL) {
     Int_max <- .Machine$integer.max
     chunk <- round(0.8 * Int_max / ncol(x))
   }
-  if(ncol(y) < chunk) {
-    return(Matrix::crossprod(x, y))
-  }
+
+  if(ncol(y) < chunk) return(Matrix::crossprod(x, y))
+ 
   message("[chunked_crossprod] chunked compute: chunk = ", chunk)
   k <- ceiling(ncol(y) / chunk)
   gsetX <- matrix(NA, nrow=ncol(x), ncol=ncol(y),
     dimnames=list(colnames(x),colnames(y)))
+
   i=1
   for(i in 1:k) {
     jj <- c(((i-1)*chunk+1):min(ncol(y),(i*chunk)))
     xy <- Matrix::crossprod(x, y[,jj])
     gsetX[,jj] <- as.matrix(xy)
   }
-  gsetX
+
+  return(gsetX)
+
 }
-
-
 
 #' Fast calculation of scSE score
 #'
@@ -165,12 +153,16 @@ chunked_crossprod <- function(x, y, chunk=NULL) {
 #'   (default FALSE).
 #'
 #' @export
-replaid.scse <- function(X, matG, removeLog2=NULL, scoreMean=FALSE) {
-  if(is.null(removeLog2)) {
-    removeLog2 <- min(X,na.rm=TRUE)==0 && max(X,na.rm=TRUE) < 20
-  }
+replaid.scse <- function(X,
+                         matG,
+                         removeLog2 = NULL,
+                         scoreMean = FALSE) {
+
+  if(is.null(removeLog2))
+    removeLog2 <- min(X, na.rm = TRUE)==0 && max(X, na.rm = TRUE) < 20
+  
   if(removeLog2)  {
-    message("[replaid.scse] removing log2")
+    message("[replaid.scse] Converting data to linear scale (removing log2)...")
     if(inherits(X,"dgCMatrix")) {
       X@x <- 2**X@x
     } else {
@@ -178,6 +170,7 @@ replaid.scse <- function(X, matG, removeLog2=NULL, scoreMean=FALSE) {
       X[nz] <- 2**X[nz]  ## undo only non-zeros as in scSE code
     }
   }
+
   if(scoreMean) {
     ## modified scSE with Mean-statistics    
     sX <- plaid(X, matG, stats="mean", normalize=FALSE)
@@ -189,8 +182,12 @@ replaid.scse <- function(X, matG, removeLog2=NULL, scoreMean=FALSE) {
     sumx <- Matrix::colSums(abs(X)) + 1e-8
     sX <- sX %*% Matrix::Diagonal(x = 1/sumx) * 100      
   }
+
   colnames(sX) <- colnames(X)
-  as.matrix(sX)
+  sX <- as.matrix(sX)
+
+  return(sX)
+
 }
 
 
@@ -216,9 +213,10 @@ replaid.scse <- function(X, matG, removeLog2=NULL, scoreMean=FALSE) {
 #' @export
 replaid.sing <- function(X, matG) {
   ## the ties.method=min is important for exact replication
-  rX <- colranks(X, ties.method="min")
+  rX <- colranks(X, ties.method = "min")
   rX <- rX / nrow(X) - 0.5
-  plaid(rX, matG=matG, normalize=FALSE)
+  gsetX <- plaid(rX, matG = matG, normalize = FALSE)
+  return(gsetX)
 }
 
 #' Fast calculation of ssGSEA
@@ -244,8 +242,8 @@ replaid.sing <- function(X, matG) {
 #' @param alpha Weighting factor for exponential weighting of ranks
 #' 
 #' @export
-replaid.ssgsea <- function(X, matG, alpha=0) {
-  rX <- colranks(X, keep.zero=TRUE, ties.method="average")
+replaid.ssgsea <- function(X, matG, alpha = 0) {
+  rX <- colranks(X, keep.zero = TRUE, ties.method = "average")
   if(alpha != 0) {
     ## This is not exactly like original formula. Not sure how to
     ## efficiently implement original rank weighting
@@ -253,7 +251,8 @@ replaid.ssgsea <- function(X, matG, alpha=0) {
   }
   rX <- rX / max(rX) - 0.5
   dimnames(rX) <- dimnames(X)
-  plaid(rX, matG, stats="mean", normalize=TRUE)
+  gsetX <- plaid(rX, matG, stats = "mean", normalize = TRUE)
+  return(gsetX)
 }
 
 #' Fast calculation of UCell
@@ -272,14 +271,11 @@ replaid.ssgsea <- function(X, matG, alpha=0) {
 #' 
 #' @param X Gene or protein expression matrix. Generally log
 #'   transformed. See details. Genes on rows, samples on columns.
-#' @param matG Gene sets sparse matrix. Genes on rows, gene sets on
-#'   columns.
-#' @param rmax Rank truncation threshold (see original
-#'   publication). Default rmax=1500.
-#' 
+#' @param matG Gene sets sparse matrix. Genes on rows, gene sets on columns.
+#' @param rmax Rank threshold (see Ucell paper). Default rmax = 1500.
 #' @export
-replaid.ucell <- function(X, matG, rmax=1500) {
-  rX <- colranks(X, ties.method="average")
+replaid.ucell <- function(X, matG, rmax = 1500) {
+  rX <- colranks(X, ties.method = "average")
   rX <- pmin( max(rX) - rX, rmax+1 )
   S <- plaid(rX, matG)
   S <- 1 - S / rmax + (Matrix::colSums(matG!=0)+1)/(2*rmax)
@@ -302,16 +298,15 @@ replaid.ucell <- function(X, matG, rmax=1500) {
 #' 
 #' @param X Gene or protein expression matrix. Generally log
 #'   transformed. See details. Genes on rows, samples on columns.
-#' @param matG Gene sets sparse matrix. Genes on rows, gene sets on
-#'   columns.
-#' @param aucMaxRank Rank threshold (see original
-#'   publication). Default aucMaxRank=0.05*nrow(X).
+#' @param matG Gene sets sparse matrix. Genes on rows, gene sets on columns.
+#' @param aucMaxRank Rank threshold (see AUCell paper). Default aucMaxRank = 0.05*nrow(X).
 #' 
 #' @export
-replaid.aucell <- function(X, matG, aucMaxRank=ceiling(0.05*nrow(X))) {
-  rX <- colranks(X, ties.method="average")
+replaid.aucell <- function(X, matG, aucMaxRank = ceiling(0.05*nrow(X))) {
+  rX <- colranks(X, ties.method = "average")
   ww <- 1.08*pmax((rX - (max(rX) - aucMaxRank)) / aucMaxRank, 0)
-  plaid(ww, matG, stats="mean")
+  gsetX <- plaid(ww, matG, stats = "mean")
+  return(gsetX)
 }
 
 #' Fast approximation of GSVA
@@ -341,9 +336,10 @@ replaid.aucell <- function(X, matG, aucMaxRank=ceiling(0.05*nrow(X))) {
 #'   tau=0.
 #' 
 #' @export
-replaid.gsva <- function(X, matG, tau=0, rowtf=c("z","ecdf")[1]) {
+replaid.gsva <- function(X, matG, tau = 0, rowtf = c("z", "ecdf")[1]) {
   rowtf <- rowtf[1]
-  if(rowtf=="z") {
+
+  if(rowtf == "z") {
     ## Faster approximation of relative activation
     zX <- (X - Matrix::rowMeans(X)) / (1e-8 + mat.rowsds(X))
   } else if(rowtf=='ecdf') {
@@ -352,7 +348,8 @@ replaid.gsva <- function(X, matG, tau=0, rowtf=c("z","ecdf")[1]) {
   } else {
     stop("Error: unknown row transform",rowtf)
   }
-  rX <- colranks(zX, signed=TRUE, ties.method="average")
+
+  rX <- colranks(zX, signed = TRUE, ties.method = "average")
   rX <- rX / max(abs(rX))
   if(tau > 0) {
     ## Note: This is not exactly like original formula. Not sure how
@@ -360,14 +357,17 @@ replaid.gsva <- function(X, matG, tau=0, rowtf=c("z","ecdf")[1]) {
     rX <- sign(rX) * abs(rX)^(1 + tau)
   }
   dimnames(rX) <- dimnames(X)
-  plaid(rX, matG)
+  gsetX <- plaid(rX, matG)
+
+  return(gsetX)
+
 }
 
 mat.rowsds <- function(X) {
-  if(inherits(X,"CsparseMatrix")) {
+  if(inherits(X,"CsparseMatrix"))
     return(sparseMatrixStats::rowSds(X))
-  }
-  matrixStats::rowSds(X)  
+  sdx <- matrixStats::rowSds(X)
+  return(sdx)
 }
 
 ##----------------------------------------------------------------
@@ -543,7 +543,6 @@ matrix_combine_p <- function(plist, method='fisher') {
 ##-------------------- UTILITIES ---------------------------------
 ##----------------------------------------------------------------
 
-
 #' Normalize column medians of matrix
 #'
 #' This function normalizes the column medians of matrix x. It calls
@@ -554,22 +553,27 @@ matrix_combine_p <- function(plist, method='fisher') {
 #'   exclude for median calculation
 #'
 #' @export
-normalize_medians <- function(x, ignore.zero=NULL) {
-  if(is.null(ignore.zero)) {
-    ignore.zero <- (min(x,na.rm=TRUE)==0)
-  }
+normalize_medians <- function(x, ignore.zero = NULL) {
+
+  if(is.null(ignore.zero))
+    ignore.zero <- (min(x,na.rm = TRUE) == 0)
+
   x <- as.matrix(x)
+
   if(ignore.zero) {
     zx <- x
     zx[Matrix::which(x==0)] <- NA
     #medx <- Rfast::colMedians(zx, na.rm=TRUE)
-    medx <- matrixStats::colMedians(zx, na.rm=TRUE)    
+    medx <- matrixStats::colMedians(zx, na.rm = TRUE)    
     medx[is.na(medx)] <- 0
   } else {
     #medx <- Rfast::colMedians(x, na.rm=TRUE)
-    medx <- matrixStats::colMedians(x, na.rm=TRUE)    
+    medx <- matrixStats::colMedians(x, na.rm = TRUE)    
   }
-  sweep(x, 2, medx, '-') + mean(medx, na.rm=TRUE)
+
+  nx <- sweep(x, 2, medx, '-') + mean(medx, na.rm = TRUE)
+  return(nx)
+  
 }
 
 #' Compute columnwise ranks of matrix
@@ -584,43 +588,49 @@ normalize_medians <- function(x, ignore.zero=NULL) {
 #' @param ties.method Character Choice of ties.method
 #' 
 #' @export
-colranks <- function(X, sparse=NULL, signed=FALSE, keep.zero=FALSE,
+colranks <- function(X,
+                     sparse = NULL,
+                     signed = FALSE,
+                     keep.zero = FALSE,
                      ties.method = "average") {
-  if(is.null(sparse)) {
+
+  if(is.null(sparse))
     sparse <- inherits(X,"CsparseMatrix")
-  }
+
   if(sparse) {
     X <- methods::as(X, "CsparseMatrix")
     if(keep.zero) {
-      rX <- sparse_colranks(X, signed=signed, ties.method=ties.method)
+      rX <- sparse_colranks(X, signed = signed, ties.method = ties.method)
     } else {
       if(signed) {
         sign.X <- sign(X)
-        abs.rX <- Matrix::t(sparseMatrixStats::colRanks(abs(X), ties.method=ties.method))
+        abs.rX <- Matrix::t(sparseMatrixStats::colRanks(abs(X), ties.method = ties.method))
         rX <- abs.rX * sign.X
       } else {
-        rX <- Matrix::t(sparseMatrixStats::colRanks(X, ties.method=ties.method))
+        rX <- Matrix::t(sparseMatrixStats::colRanks(X, ties.method = ties.method))
       }
     }
   } else {
     if(signed) {
       sign.X <- sign(X)
-      abs.rX <- Matrix::t(matrixStats::colRanks(as.matrix(abs(X)), ties.method=ties.method))
+      abs.rX <- Matrix::t(matrixStats::colRanks(as.matrix(abs(X)), ties.method = ties.method))
       rX <- sign.X * abs.rX
     } else {
-      rX <- Matrix::t(matrixStats::colRanks(as.matrix(X), ties.method=ties.method))
+      rX <- Matrix::t(matrixStats::colRanks(as.matrix(X), ties.method = ties.method))
     }
   }
-  rX
+
+  return(rX)
+
 }
 
 #' Compute columm ranks for sparse matrix. Internally used by colranks()
 #'
 #' @param X Input matrix
-#' @param signed Logical indicating using signed ranks
+#' @param signed Logical: use or not signed ranks
 #' @param ties.method Character Choice of ties.method
 #' 
-sparse_colranks <- function(X, signed=FALSE, ties.method="average") {
+sparse_colranks <- function(X, signed = FALSE, ties.method = "average") {
   ## https://stackoverflow.com/questions/41772943
   X <- methods::as(X, "CsparseMatrix")
   n <- diff(X@p)  ## number of non-zeros per column
@@ -628,14 +638,17 @@ sparse_colranks <- function(X, signed=FALSE, ties.method="average") {
   ## column-wise ranking and result collapsing
   if(signed) {
     lst.sign <- lapply(lst, sign)
-    lst.rnk  <- lapply(lst, function(x) rank(abs(x),ties.method=ties.method))
-    rnk <- unlist(mapply('*', lst.sign, lst.rnk, SIMPLIFY=FALSE))  
+    lst.rnk  <- lapply(lst, function(x) rank(abs(x),ties.method = ties.method))
+    rnk <- unlist(mapply('*', lst.sign, lst.rnk, SIMPLIFY = FALSE))  
   } else {
-    rnk <- unlist(lapply(lst, rank, ties.method=ties.method))  
+    rnk <- unlist(lapply(lst, rank, ties.method = ties.method))  
   }
+
   rX <- X  ## copy sparse matrix
   rX@x <- rnk  ## replace non-zero elements with rank
-  rX
+
+  return(rX)
+
 }
 
 ##-------------------------------------------------------------
