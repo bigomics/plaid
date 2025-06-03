@@ -6,7 +6,7 @@
 #' Compute PLAID single-sample enrichment score 
 #'
 #' @description Compute single-sample geneset expression as the
-#'   average log-ratio of genes in the geneset. Requires log-expression
+#'   average log-expression f genes in the geneset. Requires log-expression
 #'   matrix X and (sparse) geneset matrix matG. If you have gene sets
 #'   as a gmt list, please convert it first using the function `gmt2mat()`.
 #'
