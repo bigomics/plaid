@@ -95,7 +95,7 @@ plaid <- function(X, matG, stats=c("mean","sum"), chunk=NULL, normalize=TRUE) {
 #' @param y Matrix Second matrix for multiplication. Can be sparse.
 #' @param chunk Integer Chunk size (max number of columns) for computation.
 #'
-#' @return Matirx. Result of matrix cross product.
+#' @return Matrix. Result of matrix cross product.
 #' 
 chunked_crossprod <- function(x, y, chunk=NULL) {
   if(is.null(chunk) || chunk < 0) {
