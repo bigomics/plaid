@@ -26,7 +26,6 @@ biocViews:
 Imports: 
     Matrix,
     matrixStats,
-    metap,
     methods,
     Rfast,
     sparseMatrixStats

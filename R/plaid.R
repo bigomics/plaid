@@ -454,7 +454,6 @@ plaid.test <- function(X, y, G, gsetX, tests = c("one","two","lm"),
   
   if(length(P)>1) {
     message("[plaid.test] computing meta-p...")
-    ##pmeta <- apply(P, 1, function(x) metap::sumz(x)$p)
     pmeta <- matrix_combine_p(P, method=metap.method) 
   } else {
     pmeta <- P[[1]]
