@@ -6,7 +6,7 @@
 #' Compute PLAID single-sample enrichment score 
 #'
 #' @description Compute single-sample geneset expression as the
-#'   average log-ratio of genes in the geneset. Requires log-expression
+#'   average log-expression f genes in the geneset. Requires log-expression
 #'   matrix X and (sparse) geneset matrix matG. If you have gene sets
 #'   as a gmt list, please convert it first using the function `gmt2mat()`.
 #'
@@ -93,10 +93,9 @@ plaid <- function(X, matG, stats=c("mean","sum"), chunk=NULL, normalize=TRUE) {
 #'
 #' @param x Matrix First matrix for multiplication. Can be sparse.
 #' @param y Matrix Second matrix for multiplication. Can be sparse.
-#' @param chunk Integer Chunk size (max number of columns) for
-#'   computation.
+#' @param chunk Integer Chunk size (max number of columns) for computation.
 #'
-#' @return Matirx. Result of matrix cross product.
+#' @return Matrix. Result of matrix cross product.
 #' 
 chunked_crossprod <- function(x, y, chunk=NULL) {
   if(is.null(chunk) || chunk < 0) {
