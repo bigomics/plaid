@@ -1,6 +1,6 @@
 {
-  "removeLog2": 0,
+  "removeLog2": 1,
   "server": 1,
   "DBserver": "0",
-  "scoreMean": true
+  "scoreMean": false
 }

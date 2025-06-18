@@ -50,6 +50,7 @@ full dataset.
 library("plaid")
 load(system.file("extdata", "pbmc3k-50cells.rda", package = "plaid"),verbose=TRUE)
 if(FALSE) {
+  ## For full dataset run this
   library(Seurat)
   library(SeuratData)
   data("pbmc3k.final")
