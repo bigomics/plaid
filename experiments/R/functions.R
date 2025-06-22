@@ -16,6 +16,7 @@ if(!require(singscore)) BiocManager::install("singscore")
 if(!require(GSVA)) BiocManager::install("GSVA")
 
 
+
 ##----------------------------------------------------------------
 ##-------------------- RUN OTHER METHODS -------------------------
 ##----------------------------------------------------------------

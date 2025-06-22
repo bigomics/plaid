@@ -1,7 +1,7 @@
 library(plaid)
 
-BiocManager::install(c("Seurat","SeuratData"))
-InstallData("pbmc3k")
+#BiocManager::install(c("Seurat","SeuratData"))
+#InstallData("pbmc3k")
 
 ##source("~/Playground/playbase/dev/include.R", chdir=TRUE)
 source("../R/functions.R")
