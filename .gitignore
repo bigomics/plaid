@@ -60,4 +60,5 @@ rsconnect/
 # Output
 *.out
 *.Rout
-*.tmp/
+*.tmp
+*.pdf
