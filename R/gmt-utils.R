@@ -59,7 +59,7 @@ gmt2mat <- function(gmt,
       if (length(ii0) > 0) D[ii0, j] <- +1
     }
   }
-  D <- D[order(-Matrix::rowSums(D != 0, na.rm = TRUE)), ]
+  D <- D[order(-Matrix::rowSums(D != 0, na.rm = TRUE)), ,drop=FALSE]
 
   return(D)
 
