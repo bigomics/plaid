@@ -42,7 +42,7 @@ get_dataset <- function(ds, n=20) {
   }
 
   if(ds=="testis50") {
-    fn <- "~/Projects/SingleCellSignatureScorer/data/50first_cells_in_testis.tsv"
+    fn <- "~/Projects/scse/SingleCellSignatureScorer/data/50first_cells_in_testis.tsv"
     if(!file.exists(fn)) stop("missing data file")
     X <- read.csv(fn, row.names=1, sep='\t')
     X <- t(as.matrix(X))

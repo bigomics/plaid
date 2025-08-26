@@ -20,7 +20,7 @@ ds=DATASETS[4]
 method="ssgsea"
 alpha=0.25
 
-pdf("compare-vs-datasets-SSGEA.pdf", h=16, w=11, pointsize=12)
+pdf("compare-vs-datasets-ssGSEA.pdf", h=16, w=11, pointsize=12)
 par(mfrow=c(7,5), mar=c(3.4,4,2.4,1), mgp=c(2.1,0.8,0))
 for(alpha in c(0,0.25,1)) {
   cat("============ ",alpha," =============\n")
@@ -82,7 +82,7 @@ for(alpha in c(0,0.25,1)) {
     rr <- round(rr,3)
     rr.str <- ifelse(rr==1, "(r>0.999)", paste0("(r=",rr,")"))
 
-    par(mar=c(3.4,4,2.4,1))
+    par(mar=c(4,4,2.4,1))
     plot( G1[,1], G2[,1], xlab=paste(method1,"score"), ylab=method2)
     title(paste0("score  ",rr.str[1]), cex.main=1.2)
     legend("topleft", legend=toupper(ds), cex=0.8, bty="n")
