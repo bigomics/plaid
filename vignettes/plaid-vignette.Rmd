@@ -49,15 +49,6 @@ full dataset.
 ```{r}
 library("plaid")
 load(system.file("extdata", "pbmc3k-50cells.rda", package = "plaid"),verbose=TRUE)
-if(FALSE) {
-  ## For full dataset run this
-  library(Seurat)
-  library(SeuratData)
-  data("pbmc3k.final")
-  pbmc3k.final <- Seurat::UpdateSeuratObject(pbmc3k.final)
-  X <- pbmc3k.final[['RNA']]@data
-  celltype <- pbmc3k.final$seurat_annotations
-}
 dim(X)
 ```
 
@@ -152,35 +143,35 @@ whether they are significantly different from zero. The logFC is
 computed from the original (log) expression matrix `X` and group
 vector `y`.
 
-The function `plaid.test()` does both tests: the one-sample t-test on
-the logFC  and the two-group t-test on the gene set matrix `gsetX`.
 
+The function `dual_test()` does both tests: the one-sample t-test on
+the logFC  and the two-group t-test on the gene set matrix `gsetX`.
 
 ```{r}
 y <- 1*(celltype == "B")
-res <- plaid.test(X, y, matG, gsetX=gsetX, tests=c("one","lm"))
+res <- dual_test(X, y, matG, gsetX=gsetX)
 ```
 
 The top significant genesets can be shown with
 
 ```{r}
-res <- res[order(res[,"p.meta"]),] 
+res <- res[order(res[,"p.dual"]),] 
 head(res)
 ```
 
 The column `gsetFC` corresponds to the difference in gene set score
 and also corresponds to the average foldchange of the genes in the
-gene set. The column 'p.one' corresponds to the one-sample t-test on
-the logFC, the column 'p.lm' corresponds to the two-group t-test on
-the geneset scores `gsetX`. The two p-values are then combined using
+gene set. The column 'p.fc corresponds to the test on the preranked
+logFC, the column 'p.ss' corresponds to the two-group t-test on the
+geneset scores `gsetX`. The two p-values are then combined using
 Stouffer's method in the column 'p.meta' and adjusted for multiple
-testing in column `q.meta`.
+testing in column `q.dual`.
 
 We can also show the results as a volcano plot:
 
 ```{r}
 fc <- res[,"gsetFC"]
-pv <- res[,"p.meta"]
+pv <- res[,"p.dual"]
 plot( fc, -log10(pv), xlab="logFC", ylab="-log10p", pch=19)
 abline(h=0, v=0, lty=2)
 text( fc[1:5], -log10(pv[1:5]), rownames(res)[1:5],pos=2)

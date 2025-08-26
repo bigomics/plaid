@@ -12,6 +12,9 @@ check: clean
 	R -e 'devtools::check()'
 
 clean:
-	rm -f `find . -name '.#*' -o -name '#*' -o -name '*~' -printf '"%p" '`
+	rm -f `find . -name '.\#*' -o -name '\#*' -o -name '*~' -printf '"%p" '`
+
+echo:
+	echo `find . -name '.\#*' -o -name '\#*' -o -name '*~' -printf '"%p" '`
 
 FORCE: ;

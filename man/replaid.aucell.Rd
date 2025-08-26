@@ -10,11 +10,9 @@ replaid.aucell(X, matG, aucMaxRank = ceiling(0.05 * nrow(X)))
 \item{X}{Gene or protein expression matrix. Generally log
 transformed. See details. Genes on rows, samples on columns.}
 
-\item{matG}{Gene sets sparse matrix. Genes on rows, gene sets on
-columns.}
+\item{matG}{Gene sets sparse matrix. Genes on rows, gene sets on columns.}
 
-\item{aucMaxRank}{Rank threshold (see original
-publication). Default aucMaxRank=0.05*nrow(X).}
+\item{aucMaxRank}{Rank threshold (see AUCell paper). Default aucMaxRank = 0.05*nrow(X).}
 }
 \description{
 Calculates single-sample enrichment AUCell (Aibar

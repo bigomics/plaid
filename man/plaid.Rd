@@ -2,76 +2,67 @@
 % Please edit documentation in R/plaid.R
 \name{plaid}
 \alias{plaid}
-\title{Compute plaid single-sample enrichment score}
+\title{Compute PLAID single-sample enrichment score}
 \usage{
-plaid(X, matG, stats = c("mean", "sum"), chunk = NULL, normalize = TRUE)
+plaid(
+  X,
+  matG,
+  stats = c("mean", "sum"),
+  chunk = NULL,
+  normalize = TRUE,
+  nsmooth = 3
+)
 }
 \arguments{
-\item{X}{Gene or protein expression matrix. Generally log
-transformed. See details. Genes on rows, samples on columns.}
+\item{X}{Log-transformed expr. matrix. Genes on rows, samples on columns.}
 
-\item{matG}{Gene sets sparse matrix. Genes on rows, gene sets on
-columns.}
+\item{matG}{Gene sets sparse matrix. Genes on rows, gene sets on columns.}
 
-\item{stats}{Score computation as mean or sum of intensity (default
-'mean').}
+\item{stats}{Score computation stats: mean or sum of intensity. Default 'mean'.}
 
-\item{chunk}{Logical for whether using chunks for large matrices
-(default NULL for autodetect).}
+\item{chunk}{Logical: use chunks for large matrices. Default 'NULL' for autodetect.}
 
-\item{normalize}{Logical for whether to median normalize results or
-not (default TRUE).}
+\item{normalize}{Logical: median normalize results or not. Default 'TRUE'.}
 }
 \value{
-Matrix containing single-sample enrichment scores. Gene
-sets on rows, samples on columns.
+Matrix of single-sample enrichment scores.
+Gene sets on rows, samples on columns.
 }
 \description{
 Compute single-sample geneset expression as the
-average log-ratio of genes in the geneset. Requires
-log-expression matrix X and (sparse) geneset matrix matG. If you
-have gene sets as a gmt list, please convert it first using the
-function \code{gmt2mat()}.
+average log-expression f genes in the geneset. Requires log-expression
+matrix X and (sparse) geneset matrix matG. If you have gene sets
+as a gmt list, please convert it first using the function \code{gmt2mat()}.
 }
 \details{
-Plaid needs the gene sets as sparse matrix. If you have
+PLAID needs the gene sets as sparse matrix. If you have
 your collection of gene sets a a list, we need first to convert
 the gmt list to matrix format.
 
-We recommend to run Plaid on the log transformed expression matrix,
+We recommend to run PLAID on the log transformed expression matrix,
 not on the counts, as the average in the logarithmic space is more
 robust and is in concordance to calculating the geometric mean.
 
 It is not necessary to normalize your expression matrix before
-running plaid because plaid normalizes the enrichment scores
-afterwards. However, again, log transformation is recommended.
+running PLAID because PLAID performs median normalization of the
+enrichment scores afterwards.
 
-It is recommended to keep the expression matrix sparse as much as
-possible because plaid extensively take advantage of sparse matrix
-computations. But even for dense matrices plaid is fast.
+It is recommended to use sparse matrix as PLAID relies on
+sparse matrix computations. But, PLAID is also fast for dense matrices.
 
-Notice that by default plaid performs median normalization of the
-final results. That also means that it is not necessary to
-normalize your expression matrix before running plaid. However,
-generally, log transformation is recommended.
+PLAID can also be run on the ranked matrix. This corresponds to
+the singscore (Fouratan et al., 2018). PLAID can also be run on
+the (non-logarithmic) counts which can be used to calculate the
+scSE score (Pont et al., 2019).
 
-Plaid can also be run on the ranked matrix, we will see later that
-this corresponds to the singscore (Fouratan et al., 2018). Or plaid
-could be run on the (non-logarithmic) counts which can be used to
-calculate the scSE score (Pont et al., 2019).
+PLAID is fast and memery efficient because it uses efficient
+sparse matrix computation. When input matrix is very large, PLAID
+performs 'chunked' computation by splitting the matrix in chunks.
 
-Plaid is fast and memery efficient because it uses very efficient
-sparse matrix computation in the back. For very large \code{X}, plaid
-uses chunked computation by splitting the matrix in chunks to avoid
-index overflow. Should you encounter errors, please compute your
-dataset by subsetting manually the expression matrix and/or gene
-sets.
-
-Although \code{X} and \code{matG} are generally very sparse, be aware that
-the result matrix \code{gsetX} generally is dense and therefore can
-become very large. If you would want to compute the score of 10.000
-gene sets on a million of cells this would create a large 10.000 x
-1.000.000 dense matrix which requires about 75GB of memory.
+Although \code{X} and \code{matG} are generally sparse, the result
+matrix \code{gsetX} generally is dense and can thus be very large.
+Example: computing gene set scores for 10K gene sets on 1M cells
+will create a 10K x 1M dense matrix which requires ~75GB memory.
 }
 \examples{
 library(plaid)

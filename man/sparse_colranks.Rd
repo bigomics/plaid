@@ -9,7 +9,7 @@ sparse_colranks(X, signed = FALSE, ties.method = "average")
 \arguments{
 \item{X}{Input matrix}
 
-\item{signed}{Logical indicating using signed ranks}
+\item{signed}{Logical: use or not signed ranks}
 
 \item{ties.method}{Character Choice of ties.method}
 }

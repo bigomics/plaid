@@ -11,11 +11,10 @@ chunked_crossprod(x, y, chunk = NULL)
 
 \item{y}{Matrix Second matrix for multiplication. Can be sparse.}
 
-\item{chunk}{Integer Chunk size (max number of columns) for
-computation.}
+\item{chunk}{Integer Chunk size (max number of columns) for computation.}
 }
 \value{
-Matirx. Result of matrix cross product.
+Matrix. Result of matrix cross product.
 }
 \description{
 Compute crossprod (t(x) \%*\% y) for very large y by computing in

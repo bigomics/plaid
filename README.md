@@ -28,9 +28,9 @@ devtools::install_github('bigomics/plaid')
 
 ## Usage example
 
-We provide a basic example on how to use Plaid. This example uses the
-pbmc3k dataset from Seurat which is a dataset of 2,700 PBMC single cells. 
-For the gene sets, as example, we included the hallmarks genesets from MSigDB.
+We provide a basic example on how to use Plaid. This example uses a
+subset of the pbmc3k dataset from Seurat. For the gene sets, as
+example, we included the hallmarks genesets from MSigDB.
 
 However, we invite you to use your own bigger datasets and download
 bigger gene set collections as this shows the speed advantage of
@@ -61,8 +61,8 @@ pairs(S)
 
 ## differential enrichment testing
 table(celltype)
-y <- (celltype == "B")
-res <- plaid.test(X, y, matG, gsetX=gsetX)
+y <- 1*(celltype == "B")
+res <- dual_test(X, y, matG, gsetX)
 head(res)
 ```
 

@@ -10,14 +10,6 @@ knitr::opts_chunk$set(
 ## -----------------------------------------------------------------------------
 library("plaid")
 load(system.file("extdata", "pbmc3k-50cells.rda", package = "plaid"),verbose=TRUE)
-if(FALSE) {
-  library(Seurat)
-  library(SeuratData)
-  data("pbmc3k.final")
-  pbmc3k.final <- Seurat::UpdateSeuratObject(pbmc3k.final)
-  X <- pbmc3k.final[['RNA']]@data
-  celltype <- pbmc3k.final$seurat_annotations
-}
 dim(X)
 
 ## -----------------------------------------------------------------------------
@@ -32,15 +24,15 @@ dim(gsetX)
 
 ## -----------------------------------------------------------------------------
 y <- 1*(celltype == "B")
-res <- plaid.test(X, y, matG, gsetX=gsetX, tests=c("one","lm"))
+res <- dual_test(X, y, matG, gsetX=gsetX)
 
 ## -----------------------------------------------------------------------------
-res <- res[order(res[,"p.meta"]),] 
+res <- res[order(res[,"p.dual"]),] 
 head(res)
 
 ## -----------------------------------------------------------------------------
 fc <- res[,"gsetFC"]
-pv <- res[,"p.meta"]
+pv <- res[,"p.dual"]
 plot( fc, -log10(pv), xlab="logFC", ylab="-log10p", pch=19)
 abline(h=0, v=0, lty=2)
 text( fc[1:5], -log10(pv[1:5]), rownames(res)[1:5],pos=2)

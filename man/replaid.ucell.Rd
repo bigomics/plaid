@@ -10,11 +10,9 @@ replaid.ucell(X, matG, rmax = 1500)
 \item{X}{Gene or protein expression matrix. Generally log
 transformed. See details. Genes on rows, samples on columns.}
 
-\item{matG}{Gene sets sparse matrix. Genes on rows, gene sets on
-columns.}
+\item{matG}{Gene sets sparse matrix. Genes on rows, gene sets on columns.}
 
-\item{rmax}{Rank truncation threshold (see original
-publication). Default rmax=1500.}
+\item{rmax}{Rank threshold (see Ucell paper). Default rmax = 1500.}
 }
 \description{
 Calculates single-sample enrichment UCell (Andreatta

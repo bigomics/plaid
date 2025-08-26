@@ -18,8 +18,6 @@ Suggests:
     BiocStyle,
     knitr,
     rmarkdown,
-    Seurat,
-    SeuratData,
     testthat (>= 3.0.0)
 Config/testthat/edition: 3
 biocViews:
@@ -28,5 +26,6 @@ Imports:
     matrixStats,
     methods,
     Rfast,
-    sparseMatrixStats
+    sparseMatrixStats,
+    qlcMatrix
 VignetteBuilder: knitr
