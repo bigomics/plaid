@@ -15,8 +15,6 @@ if(!require(UCell)) BiocManager::install("UCell")
 if(!require(singscore)) BiocManager::install("singscore")
 if(!require(GSVA)) BiocManager::install("GSVA")
 
-
-
 ##----------------------------------------------------------------
 ##-------------------- RUN OTHER METHODS -------------------------
 ##----------------------------------------------------------------
@@ -259,6 +257,17 @@ run.blitzgsea <- function(fc, gmt) {
   return(res[,1:6])
 }
 
+run.SeuratAddModuleScore <- function(X, gmt, nbin=24) {
+  ##require(Seurat)
+  counts <- pmax(2**X-1,0)
+  obj <- Seurat::CreateSeuratObject(counts)
+  obj <- Seurat::NormalizeData(obj, verbose=0)
+  obj <- Seurat::AddModuleScore(obj, features=gmt, name="GSET", nbin=nbin)
+  gsetX <- t(obj@meta.data[,grep("GSET",colnames(obj@meta.data))])
+  rownames(gsetX) <- names(gmt)
+  gsetX
+}
+
 ##----------------------------------------------------------------
 ##-------------------- LIMMA WITH METHODS ------------------------
 ##----------------------------------------------------------------
@@ -442,6 +451,11 @@ gx.limma <- function(X, pheno, B = NULL, remove.na = TRUE,
 
   ## unlist???
   return(top)
+}
+
+plaid.limma <- function(X, y, matG) {
+  gsetX <- plaid(X, matG, normalize=TRUE)
+  gx.limma(gsetX, y, fdr=1, lfc=0, sort.by='none')
 }
 
 gsva.limma <- function(X, y, gmt, method="gsva") {
