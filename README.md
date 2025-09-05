@@ -26,6 +26,14 @@ command:
 devtools::install_github('bigomics/plaid')
 ```
 
+Ultimately, it is also possible to install `plaid` on a `conda` environment. For convenience we placed an `environment.yml` file on the repository that will take care of configuring the environment. In order to make use of it, follow this bash commands:
+
+```
+conda env create -f environment.yml
+conda activate plaid-env
+Rscript -e 'remotes::install_github("bigomics/plaid")'
+```
+
 ## Usage example
 
 We provide a basic example on how to use Plaid. This example uses a
