@@ -27,7 +27,6 @@ x[1:3, 1:3] <- 0  # Add some zeros
 
 # Normalize medians
 x_norm <- normalize_medians(x)
-print(colMedians(x))
-print(colMedians(x_norm))
+head(x_norm)
 
 }

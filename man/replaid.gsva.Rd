@@ -37,7 +37,7 @@ from the original \code{GSVA} R package and we showed good concordance
 of results in the score, logFC and p-values.
 
 In the original formulation, GSVA uses an emperical CDF to
-transform expression of each feature to a \link{0;1} relative expression
+transform expression of each feature to a (0;1) relative expression
 value. For efficiency reasons, this is here approximated by a
 z-transform (center+scale) of each row.
 }

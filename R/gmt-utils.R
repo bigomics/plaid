@@ -1,6 +1,8 @@
 ## This file is part of the Omics Playground project.
 ## Copyright (c) 2018-2025 BigOmics Analytics SA. All rights reserved.
 
+#' Convert GMT to Binary Matrix
+#'
 #' @description Convert a GMT file (Gene Matrix Transposed) to a binary matrix,
 #' where rows represent genes and columns represent gene sets.
 #' The binary matrix indicates presence or absence of genes in a gene set.
@@ -78,6 +80,8 @@ gmt2mat <- function(gmt,
 
 }
 
+#' Convert Binary Matrix to GMT
+#'
 #' @description Convert binary matrix to a GMT (Gene Matrix Transposed) list.
 #' The binary matrix indicates presence or absence of genes in each gene set.
 #' Rows represent genes and columns represent gene sets.
@@ -111,6 +115,8 @@ mat2gmt <- function(mat) {
 }
 
 
+#' Read GMT File
+#'
 #' @description Read data from a GMT file (Gene Matrix Transposed).
 #' The GMT format is commonly used to store gene sets or gene annotations.
 #' @param gmt.file Path to GMT file.
@@ -163,6 +169,8 @@ read.gmt <- function(gmt.file,
 }
 
 
+#' Write GMT File
+#'
 #' @description Write gene sets to GMT file (Gene Matrix Transposed).
 #' The GMT format is commonly used to store gene sets or gene annotations.
 #'

@@ -23,6 +23,8 @@ plaid(
 \item{chunk}{Logical: use chunks for large matrices. Default 'NULL' for autodetect.}
 
 \item{normalize}{Logical: median normalize results or not. Default 'TRUE'.}
+
+\item{nsmooth}{Smoothing parameter for more stable average when stats="mean". Default 3.}
 }
 \value{
 Matrix of single-sample enrichment scores.

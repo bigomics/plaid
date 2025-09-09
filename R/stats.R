@@ -4,7 +4,7 @@
 
 #' Statistical testing of differentially enrichment
 #'
-#' This function performs statistical testing for differential
+#' @description This function performs statistical testing for differential
 #' enrichment using plaid
 #'
 #' @param X Matrix of log expression value
@@ -15,7 +15,11 @@
 #' @param gsetX Gene set score matrix which is output of
 #'   `plaid()`. Can be NULL in that case it will be recomputed from X
 #'   and G (default required).
-#' @param tests Character array indicating which tests to perform.
+#' @param fc.test Method for fold change testing ("ztest", "rankcor", "cor"). Default "cor".
+#' @param pv1 Pre-computed p-values from fold change test. If NULL, will be computed based on fc.test.
+#' @param pv2 Pre-computed p-values from single sample test. If NULL, will be computed using gset_ttest.
+#' @param metap.method Method for combining p-values ("stouffer" or "fisher"). Default "stouffer".
+#' @param sort.by Column name to sort results by ("p.dual", "gsetFC", "p.fc", "p.ss"). Default "p.dual".
 #' 
 #' @return Data frame with columns: gsetFC (gene set fold change), size (gene set size),
 #'   p.fc (p-value from fold change test), p.ss (p-value from single sample test),

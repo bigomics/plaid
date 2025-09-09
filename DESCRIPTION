@@ -27,5 +27,7 @@ Imports:
     methods,
     Rfast,
     sparseMatrixStats,
-    qlcMatrix
+    qlcMatrix,
+    GSVA,
+    fgsea
 VignetteBuilder: knitr

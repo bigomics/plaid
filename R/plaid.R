@@ -44,6 +44,7 @@
 #' @param stats Score computation stats: mean or sum of intensity. Default 'mean'.
 #' @param chunk Logical: use chunks for large matrices. Default 'NULL' for autodetect.
 #' @param normalize Logical: median normalize results or not. Default 'TRUE'.
+#' @param nsmooth Smoothing parameter for more stable average when stats="mean". Default 3.
 #'
 #' @return Matrix of single-sample enrichment scores.
 #' Gene sets on rows, samples on columns.
@@ -478,7 +479,7 @@ replaid.aucell <- function(X, matG, aucMaxRank = ceiling(0.05*nrow(X))) {
 #' of results in the score, logFC and p-values.
 #'
 #' In the original formulation, GSVA uses an emperical CDF to
-#' transform expression of each feature to a [0;1] relative expression
+#' transform expression of each feature to a (0;1) relative expression
 #' value. For efficiency reasons, this is here approximated by a
 #' z-transform (center+scale) of each row.
 #' 
@@ -575,8 +576,7 @@ mat.rowsds <- function(X) {
 #' 
 #' # Normalize medians
 #' x_norm <- normalize_medians(x)
-#' print(colMedians(x))
-#' print(colMedians(x_norm))
+#' head(x_norm)
 #'
 #' @export
 normalize_medians <- function(x, ignore.zero = NULL) {

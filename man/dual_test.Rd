@@ -29,7 +29,15 @@ columns.}
 \code{plaid()}. Can be NULL in that case it will be recomputed from X
 and G (default required).}
 
-\item{tests}{Character array indicating which tests to perform.}
+\item{fc.test}{Method for fold change testing ("ztest", "rankcor", "cor"). Default "cor".}
+
+\item{pv1}{Pre-computed p-values from fold change test. If NULL, will be computed based on fc.test.}
+
+\item{pv2}{Pre-computed p-values from single sample test. If NULL, will be computed using gset_ttest.}
+
+\item{metap.method}{Method for combining p-values ("stouffer" or "fisher"). Default "stouffer".}
+
+\item{sort.by}{Column name to sort results by ("p.dual", "gsetFC", "p.fc", "p.ss"). Default "p.dual".}
 }
 \value{
 Data frame with columns: gsetFC (gene set fold change), size (gene set size),
