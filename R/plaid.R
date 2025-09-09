@@ -50,11 +50,37 @@
 #' 
 #' @examples
 #' library(plaid)
+#' 
+#' # Create example expression matrix
+#' set.seed(123)
+#' X <- matrix(rnorm(1000), nrow = 100, ncol = 10)
+#' rownames(X) <- paste0("GENE", 1:100)
+#' colnames(X) <- paste0("Sample", 1:10)
+#' 
+#' # Create example gene sets
+#' gmt <- list(
+#'   "Pathway1" = paste0("GENE", 1:20),
+#'   "Pathway2" = paste0("GENE", 15:35),
+#'   "Pathway3" = paste0("GENE", 30:50)
+#' )
+#' matG <- gmt2mat(gmt)
+#' 
+#' # Compute PLAID scores
+#' gsetX <- plaid(X, matG)
+#' print(dim(gsetX))
+#' print(gsetX[1:3, 1:5])
+#' 
+#' # Use sum statistics instead of mean
+#' gsetX_sum <- plaid(X, matG, stats = "sum")
+#' 
+#' \dontrun{
+#' # Using real data (if available)
 #' load(system.file("extdata", "pbmc3k-50cells.rda", package = "plaid"))
 #' hallmarks <- system.file("extdata", "hallmarks.gmt", package = "plaid")
 #' gmt <- read.gmt(hallmarks)
 #' matG <- gmt2mat(gmt)
 #' gsetX <- plaid(X, matG)
+#' }
 #'
 #' @export
 plaid <- function(X, matG, stats=c("mean","sum"), chunk=NULL, normalize=TRUE,
@@ -162,6 +188,31 @@ chunked_crossprod <- function(x, y, chunk=NULL) {
 #' @param scoreMean Logical for whether computing sum or mean as score
 #'   (default FALSE).
 #'
+#' @return Matrix of single-sample scSE enrichment scores.
+#'   Gene sets on rows, samples on columns.
+#'
+#' @examples
+#' # Create example expression matrix (log-transformed)
+#' set.seed(123)
+#' X <- log2(matrix(rpois(500, lambda = 10) + 1, nrow = 50, ncol = 10))
+#' rownames(X) <- paste0("GENE", 1:50)
+#' colnames(X) <- paste0("Sample", 1:10)
+#' 
+#' # Create example gene sets
+#' gmt <- list(
+#'   "Pathway1" = paste0("GENE", 1:15),
+#'   "Pathway2" = paste0("GENE", 10:25)
+#' )
+#' matG <- gmt2mat(gmt)
+#' 
+#' # Compute scSE scores (original method)
+#' scores <- replaid.scse(X, matG, removeLog2 = TRUE, scoreMean = FALSE)
+#' print(scores[1:2, 1:5])
+#' 
+#' # Compute scSE scores (mean method)
+#' scores_mean <- replaid.scse(X, matG, removeLog2 = TRUE, scoreMean = TRUE)
+#' print(scores_mean[1:2, 1:5])
+#'
 #' @export
 replaid.scse <- function(X,
                          matG,
@@ -220,6 +271,27 @@ replaid.scse <- function(X,
 #' @param matG Gene sets sparse matrix. Genes on rows, gene sets on
 #'   columns.
 #' 
+#' @return Matrix of single-sample singscore enrichment scores.
+#'   Gene sets on rows, samples on columns.
+#'
+#' @examples
+#' # Create example expression matrix
+#' set.seed(123)
+#' X <- matrix(rnorm(500), nrow = 50, ncol = 10)
+#' rownames(X) <- paste0("GENE", 1:50)
+#' colnames(X) <- paste0("Sample", 1:10)
+#' 
+#' # Create example gene sets
+#' gmt <- list(
+#'   "Pathway1" = paste0("GENE", 1:15),
+#'   "Pathway2" = paste0("GENE", 10:25)
+#' )
+#' matG <- gmt2mat(gmt)
+#' 
+#' # Compute singscore
+#' scores <- replaid.sing(X, matG)
+#' print(scores[1:2, 1:5])
+#'
 #' @export
 replaid.sing <- function(X, matG) {
   ## the ties.method=min is important for exact replication
@@ -251,6 +323,31 @@ replaid.sing <- function(X, matG) {
 #'   columns.
 #' @param alpha Weighting factor for exponential weighting of ranks
 #' 
+#' @return Matrix of single-sample ssGSEA enrichment scores.
+#'   Gene sets on rows, samples on columns.
+#'
+#' @examples
+#' # Create example expression matrix
+#' set.seed(123)
+#' X <- matrix(rnorm(500), nrow = 50, ncol = 10)
+#' rownames(X) <- paste0("GENE", 1:50)
+#' colnames(X) <- paste0("Sample", 1:10)
+#' 
+#' # Create example gene sets
+#' gmt <- list(
+#'   "Pathway1" = paste0("GENE", 1:15),
+#'   "Pathway2" = paste0("GENE", 10:25)
+#' )
+#' matG <- gmt2mat(gmt)
+#' 
+#' # Compute ssGSEA scores (alpha = 0)
+#' scores <- replaid.ssgsea(X, matG, alpha = 0)
+#' print(scores[1:2, 1:5])
+#' 
+#' # Compute ssGSEA scores with weighting (alpha = 0.25)
+#' scores_weighted <- replaid.ssgsea(X, matG, alpha = 0.25)
+#' print(scores_weighted[1:2, 1:5])
+#'
 #' @export
 replaid.ssgsea <- function(X, matG, alpha = 0) {
   rX <- colranks(X, keep.zero = TRUE, ties.method = "average")
@@ -283,6 +380,32 @@ replaid.ssgsea <- function(X, matG, alpha = 0) {
 #'   transformed. See details. Genes on rows, samples on columns.
 #' @param matG Gene sets sparse matrix. Genes on rows, gene sets on columns.
 #' @param rmax Rank threshold (see Ucell paper). Default rmax = 1500.
+#' 
+#' @return Matrix of single-sample UCell enrichment scores.
+#'   Gene sets on rows, samples on columns.
+#'
+#' @examples
+#' # Create example expression matrix
+#' set.seed(123)
+#' X <- matrix(rnorm(500), nrow = 50, ncol = 10)
+#' rownames(X) <- paste0("GENE", 1:50)
+#' colnames(X) <- paste0("Sample", 1:10)
+#' 
+#' # Create example gene sets
+#' gmt <- list(
+#'   "Pathway1" = paste0("GENE", 1:15),
+#'   "Pathway2" = paste0("GENE", 10:25)
+#' )
+#' matG <- gmt2mat(gmt)
+#' 
+#' # Compute UCell scores (default rmax = 1500)
+#' scores <- replaid.ucell(X, matG)
+#' print(scores[1:2, 1:5])
+#' 
+#' # Compute UCell scores with custom rmax
+#' scores_custom <- replaid.ucell(X, matG, rmax = 1000)
+#' print(scores_custom[1:2, 1:5])
+#'
 #' @export
 replaid.ucell <- function(X, matG, rmax = 1500) {
   rX <- colranks(X, ties.method = "average")
@@ -303,7 +426,7 @@ replaid.ucell <- function(X, matG, rmax = 1500) {
 #'   set. We have wrapped this in a single convenience function.
 #'
 #' We have extensively compared the results of `replaid.aucell` and
-#' from the original `UCell` R package and we showed good concordance
+#' from the original `AUCell` R package and we showed good concordance
 #' of results in the score, logFC and p-values.
 #' 
 #' @param X Gene or protein expression matrix. Generally log
@@ -311,6 +434,27 @@ replaid.ucell <- function(X, matG, rmax = 1500) {
 #' @param matG Gene sets sparse matrix. Genes on rows, gene sets on columns.
 #' @param aucMaxRank Rank threshold (see AUCell paper). Default aucMaxRank = 0.05*nrow(X).
 #' 
+#' @return Matrix of single-sample AUCell enrichment scores.
+#'   Gene sets on rows, samples on columns.
+#'
+#' @examples
+#' # Create example expression matrix
+#' set.seed(123)
+#' X <- matrix(rnorm(500), nrow = 50, ncol = 10)
+#' rownames(X) <- paste0("GENE", 1:50)
+#' colnames(X) <- paste0("Sample", 1:10)
+#' 
+#' # Create example gene sets
+#' gmt <- list(
+#'   "Pathway1" = paste0("GENE", 1:15),
+#'   "Pathway2" = paste0("GENE", 10:25)
+#' )
+#' matG <- gmt2mat(gmt)
+#' 
+#' # Compute AUCell scores
+#' scores <- replaid.aucell(X, matG)
+#' print(scores[1:2, 1:5])
+#'
 #' @export
 replaid.aucell <- function(X, matG, aucMaxRank = ceiling(0.05*nrow(X))) {
   rX <- colranks(X, ties.method = "average")
@@ -344,7 +488,29 @@ replaid.aucell <- function(X, matG, aucMaxRank = ceiling(0.05*nrow(X))) {
 #'   columns.
 #' @param tau Rank weight parameter (see GSVA publication). Default
 #'   tau=0.
+#' @param rowtf Row transformation method ("z" or "ecdf"). Default "z".
 #' 
+#' @return Matrix of single-sample GSVA enrichment scores.
+#'   Gene sets on rows, samples on columns.
+#'
+#' @examples
+#' # Create example expression matrix
+#' set.seed(123)
+#' X <- matrix(rnorm(500), nrow = 50, ncol = 10)
+#' rownames(X) <- paste0("GENE", 1:50)
+#' colnames(X) <- paste0("Sample", 1:10)
+#' 
+#' # Create example gene sets
+#' gmt <- list(
+#'   "Pathway1" = paste0("GENE", 1:15),
+#'   "Pathway2" = paste0("GENE", 10:25)
+#' )
+#' matG <- gmt2mat(gmt)
+#' 
+#' # Compute GSVA scores
+#' scores <- replaid.gsva(X, matG)
+#' print(scores[1:2, 1:5])
+#'
 #' @export
 replaid.gsva <- function(X, matG, tau = 0, rowtf = c("z", "ecdf")[1]) {
   rowtf <- rowtf[1]
@@ -373,6 +539,12 @@ replaid.gsva <- function(X, matG, tau = 0, rowtf = c("z", "ecdf")[1]) {
 
 }
 
+#' Calculate row standard deviations for matrix
+#'
+#' @param X Input matrix (can be sparse or dense)
+#'
+#' @return Vector of row standard deviations.
+#'
 mat.rowsds <- function(X) {
   if(inherits(X,"CsparseMatrix"))
     return(sparseMatrixStats::rowSds(X))
@@ -393,6 +565,19 @@ mat.rowsds <- function(X) {
 #' @param ignore.zero Logical indicating whether to ignore zeros to
 #'   exclude for median calculation
 #'
+#' @return Matrix with normalized column medians.
+#'
+#' @examples
+#' # Create example matrix
+#' set.seed(123)
+#' x <- matrix(rnorm(100), nrow = 10, ncol = 10)
+#' x[1:3, 1:3] <- 0  # Add some zeros
+#' 
+#' # Normalize medians
+#' x_norm <- normalize_medians(x)
+#' print(colMedians(x))
+#' print(colMedians(x_norm))
+#'
 #' @export
 normalize_medians <- function(x, ignore.zero = NULL) {
 
@@ -404,11 +589,9 @@ normalize_medians <- function(x, ignore.zero = NULL) {
   if(ignore.zero) {
     zx <- x
     zx[Matrix::which(x==0)] <- NA
-    #medx <- Rfast::colMedians(zx, na.rm=TRUE)
     medx <- matrixStats::colMedians(zx, na.rm = TRUE)    
     medx[is.na(medx)] <- 0
   } else {
-    #medx <- Rfast::colMedians(x, na.rm=TRUE)
     medx <- matrixStats::colMedians(x, na.rm = TRUE)    
   }
 
@@ -428,6 +611,23 @@ normalize_medians <- function(x, ignore.zero = NULL) {
 #' @param keep.zero Logical indicating whether to keep zero as ranked zero
 #' @param ties.method Character Choice of ties.method
 #' 
+#' @return Matrix of columnwise ranks with same dimensions as input.
+#'
+#' @examples
+#' # Create example matrix
+#' set.seed(123)
+#' X <- matrix(rnorm(100), nrow = 10, ncol = 10)
+#' rownames(X) <- paste0("Gene", 1:10)
+#' colnames(X) <- paste0("Sample", 1:10)
+#' 
+#' # Compute column ranks
+#' ranks <- colranks(X)
+#' print(ranks[1:5, 1:5])
+#' 
+#' # Compute signed ranks
+#' signed_ranks <- colranks(X, signed = TRUE)
+#' print(signed_ranks[1:5, 1:5])
+#'
 #' @export
 colranks <- function(X,
                      sparse = NULL,
@@ -471,6 +671,8 @@ colranks <- function(X,
 #' @param signed Logical: use or not signed ranks
 #' @param ties.method Character Choice of ties.method
 #' 
+#' @return Sparse matrix of columnwise ranks with same dimensions as input.
+#'
 sparse_colranks <- function(X, signed = FALSE, ties.method = "average") {
   ## https://stackoverflow.com/questions/41772943
   X <- methods::as(X, "CsparseMatrix")

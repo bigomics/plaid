@@ -31,7 +31,39 @@ and G (default required).}
 
 \item{tests}{Character array indicating which tests to perform.}
 }
+\value{
+Data frame with columns: gsetFC (gene set fold change), size (gene set size),
+p.fc (p-value from fold change test), p.ss (p-value from single sample test),
+p.dual (combined p-value), and q.dual (FDR-adjusted combined p-value).
+}
 \description{
 This function performs statistical testing for differential
 enrichment using plaid
+}
+\examples{
+# Create example expression matrix
+set.seed(123)
+X <- matrix(rnorm(1000), nrow = 100, ncol = 20)
+rownames(X) <- paste0("GENE", 1:100)
+colnames(X) <- paste0("Sample", 1:20)
+
+# Create binary group vector
+y <- rep(c(0, 1), each = 10)
+
+# Create example gene sets
+gmt <- list(
+  "Pathway1" = paste0("GENE", 1:20),
+  "Pathway2" = paste0("GENE", 15:35),
+  "Pathway3" = paste0("GENE", 30:50)
+)
+G <- gmt2mat(gmt)
+
+# Perform dual test
+results <- dual_test(X, y, G)
+print(head(results))
+
+# Perform dual test with correlation test
+results_cor <- dual_test(X, y, G, fc.test = "cor")
+print(head(results_cor))
+
 }

@@ -7,6 +7,14 @@ method. Much faster than doing metap::sumlog() and metap::sumz()}
 \usage{
 matrix_metap(plist, method = "stouffer")
 }
+\arguments{
+\item{plist}{List of p-value vectors or matrix of p-values}
+
+\item{method}{Method for combining p-values ("fisher"/"sumlog" or "stouffer"/"sumz")}
+}
+\value{
+Vector of combined p-values.
+}
 \description{
 Matrix version for combining p-values using fisher or stouffer
 method. Much faster than doing metap::sumlog() and metap::sumz()

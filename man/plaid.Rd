@@ -66,10 +66,36 @@ will create a 10K x 1M dense matrix which requires ~75GB memory.
 }
 \examples{
 library(plaid)
+
+# Create example expression matrix
+set.seed(123)
+X <- matrix(rnorm(1000), nrow = 100, ncol = 10)
+rownames(X) <- paste0("GENE", 1:100)
+colnames(X) <- paste0("Sample", 1:10)
+
+# Create example gene sets
+gmt <- list(
+  "Pathway1" = paste0("GENE", 1:20),
+  "Pathway2" = paste0("GENE", 15:35),
+  "Pathway3" = paste0("GENE", 30:50)
+)
+matG <- gmt2mat(gmt)
+
+# Compute PLAID scores
+gsetX <- plaid(X, matG)
+print(dim(gsetX))
+print(gsetX[1:3, 1:5])
+
+# Use sum statistics instead of mean
+gsetX_sum <- plaid(X, matG, stats = "sum")
+
+\dontrun{
+# Using real data (if available)
 load(system.file("extdata", "pbmc3k-50cells.rda", package = "plaid"))
 hallmarks <- system.file("extdata", "hallmarks.gmt", package = "plaid")
 gmt <- read.gmt(hallmarks)
 matG <- gmt2mat(gmt)
 gsetX <- plaid(X, matG)
+}
 
 }

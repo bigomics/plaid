@@ -245,3 +245,8 @@ S <- cbind(plaid=gsetX[,1], sing=sing[,1], ssgsea=ssgsea[,1], scSE=scse[,1])
 pairs(S)
 ```
 
+# Session info
+
+```{r}
+sessionInfo()
+```

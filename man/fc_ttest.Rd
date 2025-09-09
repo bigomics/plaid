@@ -12,6 +12,12 @@ fc_ttest(fc, G, sort.by = "pvalue")
 \item{G}{Sparse matrix of gene sets. Non-zero entry indicates
 gene/feature is part of gene sets. Features on rows, gene sets on
 columns.}
+
+\item{sort.by}{Column name to sort results by ("pvalue", "gsetFC", or "none")}
+}
+\value{
+Data frame with columns: gsetFC (gene set fold change),
+pvalue (p-value from one-sample t-test), and qvalue (FDR-adjusted p-value).
 }
 \description{
 This function performs statistical testing for differential

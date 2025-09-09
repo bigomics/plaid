@@ -13,6 +13,9 @@ sparse_colranks(X, signed = FALSE, ties.method = "average")
 
 \item{ties.method}{Character Choice of ties.method}
 }
+\value{
+Sparse matrix of columnwise ranks with same dimensions as input.
+}
 \description{
 Compute columm ranks for sparse matrix. Internally used by colranks()
 }

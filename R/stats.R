@@ -17,11 +17,41 @@
 #'   and G (default required).
 #' @param tests Character array indicating which tests to perform.
 #' 
+#' @return Data frame with columns: gsetFC (gene set fold change), size (gene set size),
+#'   p.fc (p-value from fold change test), p.ss (p-value from single sample test),
+#'   p.dual (combined p-value), and q.dual (FDR-adjusted combined p-value).
+#'
+#' @examples
+#' # Create example expression matrix
+#' set.seed(123)
+#' X <- matrix(rnorm(1000), nrow = 100, ncol = 20)
+#' rownames(X) <- paste0("GENE", 1:100)
+#' colnames(X) <- paste0("Sample", 1:20)
+#' 
+#' # Create binary group vector
+#' y <- rep(c(0, 1), each = 10)
+#' 
+#' # Create example gene sets
+#' gmt <- list(
+#'   "Pathway1" = paste0("GENE", 1:20),
+#'   "Pathway2" = paste0("GENE", 15:35),
+#'   "Pathway3" = paste0("GENE", 30:50)
+#' )
+#' G <- gmt2mat(gmt)
+#' 
+#' # Perform dual test
+#' results <- dual_test(X, y, G)
+#' print(head(results))
+#' 
+#' # Perform dual test with correlation test
+#' results_cor <- dual_test(X, y, G, fc.test = "cor")
+#' print(head(results_cor))
+#'
 #' @export
 dual_test <- function(X, y, G, gsetX=NULL, fc.test="cor", pv1=NULL, pv2=NULL,
                       metap.method="stouffer", sort.by='p.dual') {
   if(!all(unique(y) %in% c(0,1,NA))) stop("elements of y must be 0 or 1")
-  if(class(G)=="list") G <- gmt2mat(G)
+  if(is(G, "list")) G <- gmt2mat(G)
 
   gg <- intersect(rownames(G),rownames(X))
   sel <- which(!is.na(y))
@@ -103,6 +133,43 @@ dual_test <- function(X, y, G, gsetX=NULL, fc.test="cor", pv1=NULL, pv2=NULL,
 #' replaid backend. For the preranked test we still use fgsea. Should
 #' be much faster than original using fgsea + GSVA::ssGSEA.
 #'
+#' @param X Expression matrix with genes on rows and samples on columns
+#' @param y Binary vector (0/1) indicating group membership
+#' @param gmt List of gene sets in GMT format
+#' @param matG Optional sparse matrix of gene sets (will be computed from gmt if NULL)
+#' @param fc.test Method for fold change testing ("fgsea", "ztest", "rankcor", "cor")
+#' @param gsea.method Method for single-sample enrichment ("replaid.ssgsea", "replaid.gsva", "ssgsea", "gsva")
+#'
+#' @return Data frame with results from dual testing including fold changes,
+#'   p-values, and combined statistical measures.
+#'
+#' @examples
+#' \dontrun{
+#' # Create example expression matrix
+#' set.seed(123)
+#' X <- matrix(rnorm(1000), nrow = 100, ncol = 20)
+#' rownames(X) <- paste0("GENE", 1:100)
+#' colnames(X) <- paste0("Sample", 1:20)
+#' 
+#' # Create binary group vector
+#' y <- rep(c(0, 1), each = 10)
+#' 
+#' # Create example gene sets
+#' gmt <- list(
+#'   "Pathway1" = paste0("GENE", 1:20),
+#'   "Pathway2" = paste0("GENE", 15:35),
+#'   "Pathway3" = paste0("GENE", 30:50)
+#' )
+#' 
+#' # Perform dualGSEA with fgsea (requires fgsea package)
+#' results <- dualGSEA(X, y, gmt, fc.test = "fgsea", gsea.method = "replaid.ssgsea")
+#' print(head(results))
+#' 
+#' # Perform dualGSEA with correlation test
+#' results_cor <- dualGSEA(X, y, gmt, fc.test = "cor", gsea.method = "replaid.gsva")
+#' print(head(results_cor))
+#' }
+#'
 #' @export
 dualGSEA <- function(X, y, gmt, matG=NULL, fc.test="fgsea",
                      gsea.method='replaid.ssgsea') {
@@ -176,7 +243,11 @@ dualGSEA <- function(X, y, gmt, matG=NULL, fc.test="fgsea",
 #' @param G Sparse matrix of gene sets. Non-zero entry indicates
 #'   gene/feature is part of gene sets. Features on rows, gene sets on
 #'   columns.
+#' @param sort.by Column name to sort results by ("pvalue", "gsetFC", or "none")
 #' 
+#' @return Data frame with columns: gsetFC (gene set fold change),
+#'   pvalue (p-value from one-sample t-test), and qvalue (FDR-adjusted p-value).
+#'
 fc_ttest <- function(fc, G, sort.by="pvalue") {
   if(is.null(names(fc))) stop("fc must have names")  
   if(is.list(G)) {
@@ -212,6 +283,13 @@ fc_ttest <- function(fc, G, sort.by="pvalue") {
 #' the geneset. Requires log-expression matrix X and (sparse) geneset
 #' matrix matG.
 #'
+#' @param X Log-expression matrix with genes on rows and samples on columns
+#' @param matG Sparse gene set matrix with genes on rows and gene sets on columns
+#' @param center Logical indicating whether to center the results
+#' @param use.rank Logical indicating whether to use rank transformation
+#'
+#' @return Matrix of gene set expression scores with gene sets on rows and samples on columns.
+#'
 gset_averageCLR <- function(X, matG, center = TRUE, use.rank = FALSE) {
   if (NCOL(X) == 1) X <- cbind(X)
   gg <- intersect(rownames(X), rownames(matG))
@@ -232,6 +310,14 @@ gset_averageCLR <- function(X, matG, center = TRUE, use.rank = FALSE) {
   as.matrix(gsetX)
 }
 
+#' Perform t-test on gene set scores
+#'
+#' @param gsetX Matrix of gene set scores with gene sets on rows and samples on columns
+#' @param y Binary vector (0/1) indicating group membership
+#'
+#' @return Data frame with columns: diff (difference in means), statistic (t-statistic),
+#'   pvalue (p-value), and other t-test results.
+#'
 gset_ttest <- function(gsetX, y) {
   if(!all(unique(y) %in% c(0,1))) stop("[gset_ttest] elements of y must be 0 or 1")
   res  <- Rfast::ttests(Matrix::t(gsetX), ina=y+1)
@@ -246,10 +332,17 @@ gset_ttest <- function(gsetX, y) {
 ##----------------- FUNCTIONS ------------------------------------
 ##----------------------------------------------------------------
 
-matrix_onesample_ttest <- function(F, G) {  
+#' Perform one-sample t-test on matrix with gene sets
+#'
+#' @param Fm Vector of feature values (e.g., fold changes)
+#' @param G Sparse matrix of gene sets with genes on rows and gene sets on columns
+#'
+#' @return List containing mean, t-statistic, and p-value matrices.
+#'
+matrix_onesample_ttest <- function(Fm, G) {
   sumG <- Matrix::colSums(G!=0)
-  sum_sq  <- Matrix::crossprod(G!=0, F^2) 
-  meanx <- Matrix::crossprod(G!=0, F) / (1e-8 + sumG)
+  sum_sq  <- Matrix::crossprod(G!=0, Fm^2) 
+  meanx <- Matrix::crossprod(G!=0, Fm) / (1e-8 + sumG)
   sdx   <-  sqrt( (sum_sq - meanx^2 * sumG) / (sumG - 1))
   f_stats <- meanx
   t_stats <- meanx / (1e-8 + sdx) * sqrt(sumG)
@@ -260,6 +353,11 @@ matrix_onesample_ttest <- function(F, G) {
 
 #' Matrix version for combining p-values using fisher or stouffer
 #' method. Much faster than doing metap::sumlog() and metap::sumz()
+#'
+#' @param plist List of p-value vectors or matrix of p-values
+#' @param method Method for combining p-values ("fisher"/"sumlog" or "stouffer"/"sumz")
+#'
+#' @return Vector of combined p-values.
 #'
 matrix_metap <- function(plist, method='stouffer') {
   if(inherits(plist,"matrix")) {

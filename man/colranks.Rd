@@ -23,7 +23,26 @@ colranks(
 
 \item{ties.method}{Character Choice of ties.method}
 }
+\value{
+Matrix of columnwise ranks with same dimensions as input.
+}
 \description{
 Computes columnwise rank of matrix. Can be sparse. Tries to call
 optimized functions from Rfast or matrixStats.
+}
+\examples{
+# Create example matrix
+set.seed(123)
+X <- matrix(rnorm(100), nrow = 10, ncol = 10)
+rownames(X) <- paste0("Gene", 1:10)
+colnames(X) <- paste0("Sample", 1:10)
+
+# Compute column ranks
+ranks <- colranks(X)
+print(ranks[1:5, 1:5])
+
+# Compute signed ranks
+signed_ranks <- colranks(X, signed = TRUE)
+print(signed_ranks[1:5, 1:5])
+
 }

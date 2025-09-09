@@ -14,6 +14,10 @@ transformed. See details. Genes on rows, samples on columns.}
 
 \item{aucMaxRank}{Rank threshold (see AUCell paper). Default aucMaxRank = 0.05*nrow(X).}
 }
+\value{
+Matrix of single-sample AUCell enrichment scores.
+Gene sets on rows, samples on columns.
+}
 \description{
 Calculates single-sample enrichment AUCell (Aibar
 et al., 2017) using plaid back-end. The computation is
@@ -25,6 +29,25 @@ of the expression matrix and approximating the AUC of a gene
 set. We have wrapped this in a single convenience function.
 
 We have extensively compared the results of \code{replaid.aucell} and
-from the original \code{UCell} R package and we showed good concordance
+from the original \code{AUCell} R package and we showed good concordance
 of results in the score, logFC and p-values.
+}
+\examples{
+# Create example expression matrix
+set.seed(123)
+X <- matrix(rnorm(500), nrow = 50, ncol = 10)
+rownames(X) <- paste0("GENE", 1:50)
+colnames(X) <- paste0("Sample", 1:10)
+
+# Create example gene sets
+gmt <- list(
+  "Pathway1" = paste0("GENE", 1:15),
+  "Pathway2" = paste0("GENE", 10:25)
+)
+matG <- gmt2mat(gmt)
+
+# Compute AUCell scores
+scores <- replaid.aucell(X, matG)
+print(scores[1:2, 1:5])
+
 }

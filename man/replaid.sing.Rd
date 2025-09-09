@@ -13,6 +13,10 @@ transformed. See details. Genes on rows, samples on columns.}
 \item{matG}{Gene sets sparse matrix. Genes on rows, gene sets on
 columns.}
 }
+\value{
+Matrix of single-sample singscore enrichment scores.
+Gene sets on rows, samples on columns.
+}
 \description{
 Calculates single-sample enrichment singscore
 (Fouratan et al., 2018) using plaid back-end. The computation is
@@ -26,4 +30,23 @@ convenience function.
 We have extensively compared the results of \code{replaid.sing} and from
 the original \code{singscore} R package and we showed identical result
 in the score, logFC and p-values.
+}
+\examples{
+# Create example expression matrix
+set.seed(123)
+X <- matrix(rnorm(500), nrow = 50, ncol = 10)
+rownames(X) <- paste0("GENE", 1:50)
+colnames(X) <- paste0("Sample", 1:10)
+
+# Create example gene sets
+gmt <- list(
+  "Pathway1" = paste0("GENE", 1:15),
+  "Pathway2" = paste0("GENE", 10:25)
+)
+matG <- gmt2mat(gmt)
+
+# Compute singscore
+scores <- replaid.sing(X, matG)
+print(scores[1:2, 1:5])
+
 }

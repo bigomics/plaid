@@ -15,6 +15,12 @@ columns.}
 
 \item{tau}{Rank weight parameter (see GSVA publication). Default
 tau=0.}
+
+\item{rowtf}{Row transformation method ("z" or "ecdf"). Default "z".}
+}
+\value{
+Matrix of single-sample GSVA enrichment scores.
+Gene sets on rows, samples on columns.
 }
 \description{
 Calculates single-sample enrichment GSVA (Hänzelmann
@@ -34,4 +40,23 @@ In the original formulation, GSVA uses an emperical CDF to
 transform expression of each feature to a \link{0;1} relative expression
 value. For efficiency reasons, this is here approximated by a
 z-transform (center+scale) of each row.
+}
+\examples{
+# Create example expression matrix
+set.seed(123)
+X <- matrix(rnorm(500), nrow = 50, ncol = 10)
+rownames(X) <- paste0("GENE", 1:50)
+colnames(X) <- paste0("Sample", 1:10)
+
+# Create example gene sets
+gmt <- list(
+  "Pathway1" = paste0("GENE", 1:15),
+  "Pathway2" = paste0("GENE", 10:25)
+)
+matG <- gmt2mat(gmt)
+
+# Compute GSVA scores
+scores <- replaid.gsva(X, matG)
+print(scores[1:2, 1:5])
+
 }

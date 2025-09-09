@@ -15,6 +15,10 @@ columns.}
 
 \item{alpha}{Weighting factor for exponential weighting of ranks}
 }
+\value{
+Matrix of single-sample ssGSEA enrichment scores.
+Gene sets on rows, samples on columns.
+}
 \description{
 Calculates single-sample enrichment singscore (Barbie
 et al., 2009; Hänzelmann et al., 2013) using plaid back-end. The
@@ -30,4 +34,27 @@ from the original \code{GSVA} R package and we showed highly similar
 results in the score, logFC and p-values. For alpha=0 we obtain
 exact results, for alpha>0 the results are highly similar but not
 exactly the same.
+}
+\examples{
+# Create example expression matrix
+set.seed(123)
+X <- matrix(rnorm(500), nrow = 50, ncol = 10)
+rownames(X) <- paste0("GENE", 1:50)
+colnames(X) <- paste0("Sample", 1:10)
+
+# Create example gene sets
+gmt <- list(
+  "Pathway1" = paste0("GENE", 1:15),
+  "Pathway2" = paste0("GENE", 10:25)
+)
+matG <- gmt2mat(gmt)
+
+# Compute ssGSEA scores (alpha = 0)
+scores <- replaid.ssgsea(X, matG, alpha = 0)
+print(scores[1:2, 1:5])
+
+# Compute ssGSEA scores with weighting (alpha = 0.25)
+scores_weighted <- replaid.ssgsea(X, matG, alpha = 0.25)
+print(scores_weighted[1:2, 1:5])
+
 }

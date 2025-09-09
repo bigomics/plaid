@@ -16,6 +16,22 @@
 #'
 #' @return A binary matrix representing the presence or absence of genes in each gene set.
 #'         Rows correspond to genes, and columns correspond to gene sets.
+#'
+#' @examples
+#' # Create example GMT data
+#' gmt <- list(
+#'   "Pathway1" = c("GENE1", "GENE2", "GENE3"),
+#'   "Pathway2" = c("GENE2", "GENE4", "GENE5"),
+#'   "Pathway3" = c("GENE1", "GENE5", "GENE6")
+#' )
+#' 
+#' # Convert to binary matrix
+#' mat <- gmt2mat(gmt)
+#' print(mat)
+#' 
+#' # Create dense matrix instead of sparse
+#' mat_dense <- gmt2mat(gmt, sparse = FALSE)
+#' print(mat_dense)
 gmt2mat <- function(gmt,
                     max.genes = -1,
                     ntop = -1, sparse = TRUE,
@@ -74,6 +90,19 @@ gmt2mat <- function(gmt,
 #' @return A list of vector representing each gene set. Each list
 #'   element correspond to a gene set and is a vector of genes
 #'
+#' @examples
+#' # Create example binary matrix
+#' mat <- matrix(0, nrow = 6, ncol = 3)
+#' rownames(mat) <- paste0("GENE", 1:6)
+#' colnames(mat) <- paste0("Pathway", 1:3)
+#' mat[1:3, 1] <- 1  # Pathway1: GENE1, GENE2, GENE3
+#' mat[c(2,4,5), 2] <- 1  # Pathway2: GENE2, GENE4, GENE5
+#' mat[c(1,5,6), 3] <- 1  # Pathway3: GENE1, GENE5, GENE6
+#' 
+#' # Convert to GMT list
+#' gmt <- mat2gmt(mat)
+#' print(gmt)
+#'
 mat2gmt <- function(mat) {
   idx <- Matrix::which(mat != 0, arr.ind = TRUE)
   gmt <- tapply(rownames(idx), idx[, 2], list)
@@ -93,6 +122,18 @@ mat2gmt <- function(mat) {
 #'
 #' @return A list of gene sets: each gene set is represented as a character vector of gene names.
 #' 
+#' @examples
+#' \dontrun{
+#' # Read GMT file
+#' gmt <- read.gmt("pathways.gmt")
+#' print(names(gmt))
+#' print(gmt[[1]])
+#' 
+#' # Read with source information
+#' gmt_with_source <- read.gmt("pathways.gmt", add.source = TRUE)
+#' print(names(gmt_with_source))
+#' }
+#'
 read.gmt <- function(gmt.file,
                      dir = NULL,
                      add.source = FALSE,
@@ -133,6 +174,22 @@ read.gmt <- function(gmt.file,
 #' @export
 #' @return NULL
 #' 
+#' @examples
+#' # Create example GMT data
+#' gmt <- list(
+#'   "Pathway1" = c("GENE1", "GENE2", "GENE3"),
+#'   "Pathway2" = c("GENE2", "GENE4", "GENE5"),
+#'   "Pathway3" = c("GENE1", "GENE5", "GENE6")
+#' )
+#' 
+#' \dontrun{
+#' # Write to GMT file
+#' write.gmt(gmt, "output.gmt")
+#' 
+#' # Write with custom source information
+#' write.gmt(gmt, "output_with_source.gmt", source = c("DB1", "DB2", "DB3"))
+#' }
+#'
 write.gmt <- function(gmt, file, source = NA) {
   gg <- lapply(gmt, paste, collapse = "\t")
   if (is.na(source)) source <- names(gmt)

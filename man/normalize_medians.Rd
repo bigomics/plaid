@@ -12,7 +12,22 @@ normalize_medians(x, ignore.zero = NULL)
 \item{ignore.zero}{Logical indicating whether to ignore zeros to
 exclude for median calculation}
 }
+\value{
+Matrix with normalized column medians.
+}
 \description{
 This function normalizes the column medians of matrix x. It calls
 optimized functions from the matrixStats package.
+}
+\examples{
+# Create example matrix
+set.seed(123)
+x <- matrix(rnorm(100), nrow = 10, ncol = 10)
+x[1:3, 1:3] <- 0  # Add some zeros
+
+# Normalize medians
+x_norm <- normalize_medians(x)
+print(colMedians(x))
+print(colMedians(x_norm))
+
 }

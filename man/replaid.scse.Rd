@@ -19,6 +19,10 @@ apply power transform (base2) on input (default TRUE).}
 \item{scoreMean}{Logical for whether computing sum or mean as score
 (default FALSE).}
 }
+\value{
+Matrix of single-sample scSE enrichment scores.
+Gene sets on rows, samples on columns.
+}
 \description{
 Calculates Single-Cell Signature Explorer (Pont et
 al., 2019) scores using plaid back-end. The computation is
@@ -37,4 +41,27 @@ and \code{scoreMean=FALSE}. scSE and plaid scores become more similar for
 We have extensively compared the results from \code{replaid.scse} and
 from the original scSE (implemented in GO lang) and we showed
 almost identical results in the score, logFC and p-values.
+}
+\examples{
+# Create example expression matrix (log-transformed)
+set.seed(123)
+X <- log2(matrix(rpois(500, lambda = 10) + 1, nrow = 50, ncol = 10))
+rownames(X) <- paste0("GENE", 1:50)
+colnames(X) <- paste0("Sample", 1:10)
+
+# Create example gene sets
+gmt <- list(
+  "Pathway1" = paste0("GENE", 1:15),
+  "Pathway2" = paste0("GENE", 10:25)
+)
+matG <- gmt2mat(gmt)
+
+# Compute scSE scores (original method)
+scores <- replaid.scse(X, matG, removeLog2 = TRUE, scoreMean = FALSE)
+print(scores[1:2, 1:5])
+
+# Compute scSE scores (mean method)
+scores_mean <- replaid.scse(X, matG, removeLog2 = TRUE, scoreMean = TRUE)
+print(scores_mean[1:2, 1:5])
+
 }
