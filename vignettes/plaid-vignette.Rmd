@@ -25,16 +25,17 @@ algorithm. PLAID demonstrates accurate gene set scoring and
 outperforms all currently available gene set scoring methods in large
 bulk and single-cell RNA-seq datasets.
 
+# Motivation
 
-# Installing 'plaid'
-
-The most updated version of ‘plaid’ is hosted on GitHub and can be
-easily installed using devtools::install_github() function provided by
-
-
-```{r}
-# devtools::install_github('bigomics/plaid')
-```
+In recent years, computational methods have emerged that calculate enrichment of gene signatures
+within individual samples, rather than across pooled samples. These signatures offer critical insights into the
+coordinated activity of functionally related genes, proteins or metabolites, enabling identification of unique
+molecular profiles based on gene set and pathway activity in individual cells and patients. This strategy is pivotal
+for patient stratification and advancement of personalized medicine. However, the rise of large-scale datasets,
+including single-cell profiles and population biobanks, has exposed significant computational inefficiencies in
+existing methods. Current methods often demand excessive runtime and memory resources, becoming
+impractical for large datasets. Overcoming these limitations is a focus of current efforts by bioinformatics teams in
+academia and the pharmaceutical industry, as essential to support basic and clinical biomedical research.
 
 
 # Example: Single-cell RNA-seq hallmark scoring
