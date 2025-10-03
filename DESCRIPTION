@@ -25,9 +25,13 @@ Imports:
     Matrix,
     matrixStats,
     methods,
+    parallel,
     Rfast,
     sparseMatrixStats,
     qlcMatrix,
     GSVA,
-    fgsea
+    fgsea,
+    SummarizedExperiment,
+    SingleCellExperiment,
+    BiocSet
 VignetteBuilder: knitr
