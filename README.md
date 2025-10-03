@@ -74,6 +74,52 @@ res <- dual_test(X, y, matG, gsetX)
 head(res)
 ```
 
+## Using Plaid with Bioconductor objects
+
+Plaid automatically detects and handles Bioconductor classes such as
+`SummarizedExperiment`, `SingleCellExperiment`, and `BiocSet` for gene
+sets. Simply pass them to any plaid function - no special wrappers needed!
+
+```r
+library(plaid)
+library(SummarizedExperiment)
+library(SingleCellExperiment)
+
+# Create a SingleCellExperiment object
+counts <- matrix(rpois(1000, lambda=10), nrow=100, ncol=10)
+rownames(counts) <- paste0("GENE", 1:100)
+colnames(counts) <- paste0("Cell", 1:10)
+sce <- SingleCellExperiment(assays=list(counts=counts))
+
+# Add log-transformed data
+logcounts(sce) <- log2(counts(sce) + 1)
+
+# Define gene sets (as GMT list or BiocSet)
+gmt <- list(
+  "Pathway1" = paste0("GENE", 1:20),
+  "Pathway2" = paste0("GENE", 15:35),
+  "Pathway3" = paste0("GENE", 30:50)
+)
+
+# Just use the regular plaid functions!
+# They auto-detect SingleCellExperiment and extract the right assay
+scores <- plaid(sce, gmt, assay="logcounts")
+dim(scores)
+
+# All other methods work the same way
+sing_scores <- replaid.sing(sce, gmt)
+ssgsea_scores <- replaid.ssgsea(sce, gmt)
+ucell_scores <- replaid.ucell(sce, gmt)
+gsva_scores <- replaid.gsva(sce, gmt)
+```
+
+**What happens automatically:**
+- Detects SummarizedExperiment/SingleCellExperiment and extracts the appropriate assay
+- Handles BiocSet objects for gene sets
+- Converts GMT lists to sparse matrix format
+- Filters gene sets by size (default: 5-500 genes)
+- Works with regular matrices too (100% backward compatible)
+
 ## Support
 
 For support feel free to reach our Bioinformatics Data Science Team at
