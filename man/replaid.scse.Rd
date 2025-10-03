@@ -4,20 +4,35 @@
 \alias{replaid.scse}
 \title{Fast calculation of scSE score}
 \usage{
-replaid.scse(X, matG, removeLog2 = NULL, scoreMean = FALSE)
+replaid.scse(
+  X,
+  matG,
+  removeLog2 = NULL,
+  scoreMean = FALSE,
+  assay = "logcounts",
+  min.genes = 5,
+  max.genes = 500
+)
 }
 \arguments{
 \item{X}{Gene or protein expression matrix. Generally log
-transformed. See details. Genes on rows, samples on columns.}
+transformed. See details. Genes on rows, samples on columns.
+Also accepts SummarizedExperiment or SingleCellExperiment objects.}
 
 \item{matG}{Gene sets sparse matrix. Genes on rows, gene sets on
-columns.}
+columns. Also accepts BiocSet objects or GMT lists.}
 
 \item{removeLog2}{Logical for whether to remove the Log2, i.e. will
 apply power transform (base2) on input (default TRUE).}
 
 \item{scoreMean}{Logical for whether computing sum or mean as score
 (default FALSE).}
+
+\item{assay}{Character: assay name for Bioconductor objects. Default "logcounts".}
+
+\item{min.genes}{Integer: minimum genes per gene set. Default 5.}
+
+\item{max.genes}{Integer: maximum genes per gene set. Default 500.}
 }
 \value{
 Matrix of single-sample scSE enrichment scores.

@@ -10,13 +10,18 @@ plaid(
   stats = c("mean", "sum"),
   chunk = NULL,
   normalize = TRUE,
-  nsmooth = 3
+  nsmooth = 3,
+  assay = "logcounts",
+  min.genes = 5,
+  max.genes = 500
 )
 }
 \arguments{
-\item{X}{Log-transformed expr. matrix. Genes on rows, samples on columns.}
+\item{X}{Log-transformed expr. matrix. Genes on rows, samples on columns.
+Also accepts SummarizedExperiment or SingleCellExperiment objects.}
 
-\item{matG}{Gene sets sparse matrix. Genes on rows, gene sets on columns.}
+\item{matG}{Gene sets sparse matrix. Genes on rows, gene sets on columns.
+Also accepts BiocSet objects or GMT lists (named list of gene vectors).}
 
 \item{stats}{Score computation stats: mean or sum of intensity. Default 'mean'.}
 
@@ -25,6 +30,12 @@ plaid(
 \item{normalize}{Logical: median normalize results or not. Default 'TRUE'.}
 
 \item{nsmooth}{Smoothing parameter for more stable average when stats="mean". Default 3.}
+
+\item{assay}{Character: assay name to extract from SummarizedExperiment/SingleCellExperiment. Default "logcounts".}
+
+\item{min.genes}{Integer: minimum genes per gene set (for BiocSet/GMT input). Default 5.}
+
+\item{max.genes}{Integer: maximum genes per gene set (for BiocSet/GMT input). Default 500.}
 }
 \value{
 Matrix of single-sample enrichment scores.
@@ -65,6 +76,11 @@ Although \code{X} and \code{matG} are generally sparse, the result
 matrix \code{gsetX} generally is dense and can thus be very large.
 Example: computing gene set scores for 10K gene sets on 1M cells
 will create a 10K x 1M dense matrix which requires ~75GB memory.
+
+PLAID now automatically detects and handles Bioconductor objects.
+If X is a SummarizedExperiment or SingleCellExperiment, it will extract
+the appropriate assay. If matG is a BiocSet object or GMT list, it will
+be converted to sparse matrix format automatically.
 }
 \examples{
 library(plaid)

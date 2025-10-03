@@ -4,14 +4,21 @@
 \alias{replaid.sing}
 \title{Fast calculation of singscore}
 \usage{
-replaid.sing(X, matG)
+replaid.sing(X, matG, assay = "logcounts", min.genes = 5, max.genes = 500)
 }
 \arguments{
 \item{X}{Gene or protein expression matrix. Generally log
-transformed. See details. Genes on rows, samples on columns.}
+transformed. See details. Genes on rows, samples on columns.
+Also accepts SummarizedExperiment or SingleCellExperiment objects.}
 
 \item{matG}{Gene sets sparse matrix. Genes on rows, gene sets on
-columns.}
+columns. Also accepts BiocSet objects or GMT lists.}
+
+\item{assay}{Character: assay name for Bioconductor objects. Default "logcounts".}
+
+\item{min.genes}{Integer: minimum genes per gene set. Default 5.}
+
+\item{max.genes}{Integer: maximum genes per gene set. Default 500.}
 }
 \value{
 Matrix of single-sample singscore enrichment scores.

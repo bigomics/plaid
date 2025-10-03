@@ -4,19 +4,34 @@
 \alias{replaid.gsva}
 \title{Fast approximation of GSVA}
 \usage{
-replaid.gsva(X, matG, tau = 0, rowtf = c("z", "ecdf")[1])
+replaid.gsva(
+  X,
+  matG,
+  tau = 0,
+  rowtf = c("z", "ecdf")[1],
+  assay = "logcounts",
+  min.genes = 5,
+  max.genes = 500
+)
 }
 \arguments{
 \item{X}{Gene or protein expression matrix. Generally log
-transformed. See details. Genes on rows, samples on columns.}
+transformed. See details. Genes on rows, samples on columns.
+Also accepts SummarizedExperiment or SingleCellExperiment objects.}
 
 \item{matG}{Gene sets sparse matrix. Genes on rows, gene sets on
-columns.}
+columns. Also accepts BiocSet objects or GMT lists.}
 
 \item{tau}{Rank weight parameter (see GSVA publication). Default
 tau=0.}
 
 \item{rowtf}{Row transformation method ("z" or "ecdf"). Default "z".}
+
+\item{assay}{Character: assay name for Bioconductor objects. Default "logcounts".}
+
+\item{min.genes}{Integer: minimum genes per gene set. Default 5.}
+
+\item{max.genes}{Integer: maximum genes per gene set. Default 500.}
 }
 \value{
 Matrix of single-sample GSVA enrichment scores.
