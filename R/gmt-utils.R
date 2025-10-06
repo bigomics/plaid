@@ -180,7 +180,7 @@ read.gmt <- function(gmt.file,
 #' If not provided, the names of the gene sets are used as the source.
 #' 
 #' @export
-#' @return NULL
+#' @return Does not return anything.
 #' 
 #' @examples
 #' # Create example GMT data

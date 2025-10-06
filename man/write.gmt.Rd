@@ -14,6 +14,9 @@ write.gmt(gmt, file, source = NA)
 \item{source}{A character vector specifying the source of each gene set.
 If not provided, the names of the gene sets are used as the source.}
 }
+\value{
+Does not return anything.
+}
 \description{
 Write gene sets to GMT file (Gene Matrix Transposed).
 The GMT format is commonly used to store gene sets or gene annotations.
