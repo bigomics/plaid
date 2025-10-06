@@ -1,6 +1,6 @@
 Package: plaid
 Title: Pathway Level Average Intensity Detection
-Version: 0.99.0
+Version: 0.99.1
 Authors@R: c(
     person("Ivo", "Kwee", , "ivo.kwee@bigomics.ch", role = "cre",
            comment = c(ORCID = "0000-0002-2751-4218")),
