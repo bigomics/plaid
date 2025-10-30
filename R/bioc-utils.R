@@ -154,7 +154,7 @@
   }
   
   # Filter gene sets by size
-  gset_sizes <- sapply(gmt, length)
+  gset_sizes <- vapply(gmt, length, integer(1))
   valid_sets <- gset_sizes >= min.genes & gset_sizes <= max.genes
   
   if (sum(valid_sets) == 0) {

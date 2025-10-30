@@ -40,7 +40,7 @@ gmt2mat <- function(gmt,
                     bg = NULL,
                     use.multicore = TRUE) {
 
-  gmt <- gmt[order(-sapply(gmt, length))]
+  gmt <- gmt[order(-vapply(gmt, length, integer(1)))]
   gmt <- gmt[!duplicated(names(gmt))]
   if (ntop > 0) gmt <- lapply(gmt, utils::head, n = ntop)
   
@@ -68,7 +68,7 @@ gmt2mat <- function(gmt,
     idx <- lapply(gmt, function(s) match(s, gg))
   }
   idx <- lapply(idx, function(x) x[!is.na(x)])
-  idx[sapply(idx, length) == 0] <- 0
+  idx[vapply(idx, length, integer(1)) == 0] <- 0
   idx <- lapply(seq_along(idx), function(i) rbind(idx[[i]], i))
   idx <- matrix(unlist(idx[]), byrow = TRUE, ncol = 2)
   idx <- idx[!is.na(idx[, 1]), ]
@@ -149,14 +149,14 @@ read.gmt <- function(gmt.file,
   if (!is.null(dir)) f0 <- paste(sub("/$", "", dir), "/", gmt.file, sep = "")
   gmt <- utils::read.csv(f0, sep = "!", header = FALSE, comment.char = "#", nrows = nrows)[, 1]
   gmt <- as.character(gmt)
-  gmt <- sapply(gmt, strsplit, split = "\t")
+  gmt <- lapply(gmt, strsplit, split = "\t")
   names(gmt) <- NULL
-  gmt.name <- sapply(gmt, "[", 1)
-  gmt.source <- sapply(gmt, "[", 2)
-  gmt.genes <- sapply(gmt, function(x) {
+  gmt.name <- vapply(gmt, "[", character(1), 1)
+  gmt.source <- vapply(gmt, "[", character(1), 2)
+  gmt.genes <- vapply(gmt, function(x) {
     if (length(x) < 3) return("");
     paste(x[3:length(x)], collapse = " ")
-  })
+  }, character(1))
   gset <- strsplit(gmt.genes, split = "[ \t]")
   gset <- lapply(gset, function(x) setdiff(x, c("", "NA", NA)))
   names(gset) <- gmt.name
