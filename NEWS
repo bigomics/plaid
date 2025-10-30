@@ -1,0 +1,20 @@
+Changes in version 0.99.0
+-------------------------
+
+INITIAL RELEASE
+
+  * plaid: ultra-fast single-sample enrichment scoring using rank-based 
+    statistics
+  
+  * replaid methods: fast implementations of popular enrichment methods 
+    (ssGSEA, GSVA, singscore, UCell, AUCell, scSE)
+  
+  * dualGSEA: statistical testing for differential enrichment with dual_test
+  
+  * Full Bioconductor integration with SummarizedExperiment, 
+    SingleCellExperiment, and BiocSet support
+  
+  * GMT utilities for reading, writing, and converting gene set files
+  
+  * Performance optimizations including sparse matrix support and parallel 
+    processing
