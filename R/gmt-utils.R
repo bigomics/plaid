@@ -44,7 +44,7 @@ gmt2mat <- function(gmt,
   gmt <- gmt[!duplicated(names(gmt))]
   if (ntop > 0) gmt <- lapply(gmt, utils::head, n = ntop)
   
-  if (is.null(names(gmt))) names(gmt) <- paste("gmt.", 1:length(gmt), sep = "")
+  if (is.null(names(gmt))) names(gmt) <- paste("gmt.", seq_along(gmt), sep = "")
   if (is.null(bg)) {
     bg <- names(sort(table(unlist(gmt)), decreasing = TRUE))
   }
@@ -69,7 +69,7 @@ gmt2mat <- function(gmt,
   }
   idx <- lapply(idx, function(x) x[!is.na(x)])
   idx[sapply(idx, length) == 0] <- 0
-  idx <- sapply(1:length(idx), function(i) rbind(idx[[i]], i))
+  idx <- lapply(seq_along(idx), function(i) rbind(idx[[i]], i))
   idx <- matrix(unlist(idx[]), byrow = TRUE, ncol = 2)
   idx <- idx[!is.na(idx[, 1]), ]
   idx <- idx[idx[, 1] > 0, ]

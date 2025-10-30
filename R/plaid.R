@@ -169,8 +169,7 @@ chunked_crossprod <- function(x, y, chunk=NULL) {
   gsetX <- matrix(NA, nrow=ncol(x), ncol=ncol(y),
     dimnames=list(colnames(x),colnames(y)))
 
-  i=1
-  for(i in 1:k) {
+  for(i in seq_len(k)) {
     jj <- c(((i-1)*chunk+1):min(ncol(y),(i*chunk)))
     xy <- Matrix::crossprod(x, y[,jj])
     gsetX[,jj] <- as.matrix(xy)
@@ -790,7 +789,7 @@ sparse_colranks <- function(X, signed = FALSE, ties.method = "average") {
   ## https://stackoverflow.com/questions/41772943
   X <- methods::as(X, "CsparseMatrix")
   n <- diff(X@p)  ## number of non-zeros per column
-  lst <- split(X@x, rep.int(1:ncol(X), n))  ## columns to list
+  lst <- split(X@x, rep.int(seq_len(ncol(X)), n))  ## columns to list
   ## column-wise ranking and result collapsing
   if(signed) {
     lst.sign <- lapply(lst, sign)

@@ -489,7 +489,7 @@ cor_sparse_matrix <- function(G, mat) {
       jj <- which(!is.na(y))
       qlcMatrix::corSparse(X[jj, , drop = FALSE], cbind(y[jj]))
     }
-    cor_matrix <- lapply(1:ncol(mat), function(i) corSparse.vec(G, mat[, i]))
+    cor_matrix <- lapply(seq_len(ncol(mat)), function(i) corSparse.vec(G, mat[, i]))
     cor_matrix <- do.call(cbind, cor_matrix)
   }
   return(cor_matrix)
