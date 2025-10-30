@@ -1,3 +1,5 @@
+[![codecov](https://codecov.io/github/bigomics/plaid/graph/badge.svg?token=66J6W41C0G)](https://codecov.io/github/bigomics/plaid)
+
 # PLAID
 
 Plaid (Pathway Level Average Intensity Detection) is an ultra-fast
