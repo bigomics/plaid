@@ -29,12 +29,17 @@ gmt <- list(
   "Pathway3" = c("GENE1", "GENE5", "GENE6")
 )
 
-\dontrun{
-# Write to GMT file
-write.gmt(gmt, "output.gmt")
+\donttest{
+# Write to GMT file (creates file in temp directory)
+temp_file <- tempfile(fileext = ".gmt")
+write.gmt(gmt, temp_file)
 
 # Write with custom source information
-write.gmt(gmt, "output_with_source.gmt", source = c("DB1", "DB2", "DB3"))
+temp_file2 <- tempfile(fileext = ".gmt")
+write.gmt(gmt, temp_file2, source = c("DB1", "DB2", "DB3"))
+
+# Clean up
+unlink(c(temp_file, temp_file2))
 }
 
 }

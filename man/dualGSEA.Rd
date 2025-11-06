@@ -38,7 +38,6 @@ replaid backend. For the preranked test we still use fgsea. Should
 be much faster than original using fgsea + GSVA::ssGSEA.
 }
 \examples{
-\dontrun{
 # Create example expression matrix
 set.seed(123)
 X <- matrix(rnorm(1000), nrow = 100, ncol = 20)
@@ -55,13 +54,16 @@ gmt <- list(
   "Pathway3" = paste0("GENE", 30:50)
 )
 
-# Perform dualGSEA with fgsea (requires fgsea package)
-results <- dualGSEA(X, y, gmt, fc.test = "fgsea", gsea.method = "replaid.ssgsea")
-print(head(results))
-
-# Perform dualGSEA with correlation test
+# Perform dualGSEA with correlation test (fast method)
 results_cor <- dualGSEA(X, y, gmt, fc.test = "cor", gsea.method = "replaid.gsva")
 print(head(results_cor))
+
+\donttest{
+# Perform dualGSEA with fgsea (requires fgsea package)
+if (requireNamespace("fgsea", quietly = TRUE)) {
+  results <- dualGSEA(X, y, gmt, fc.test = "fgsea", gsea.method = "replaid.ssgsea")
+  print(head(results))
+}
 }
 
 }

@@ -23,15 +23,18 @@ Read data from a GMT file (Gene Matrix Transposed).
 The GMT format is commonly used to store gene sets or gene annotations.
 }
 \examples{
-\dontrun{
-# Read GMT file
-gmt <- read.gmt("pathways.gmt")
-print(names(gmt))
-print(gmt[[1]])
-
-# Read with source information
-gmt_with_source <- read.gmt("pathways.gmt", add.source = TRUE)
-print(names(gmt_with_source))
+\donttest{
+# Read GMT file (requires file to exist)
+gmt_file <- system.file("extdata", "hallmarks.gmt", package = "plaid")
+if (file.exists(gmt_file)) {
+  gmt <- read.gmt(gmt_file)
+  print(names(gmt))
+  print(head(gmt[[1]]))
+  
+  # Read with source information
+  gmt_with_source <- read.gmt(gmt_file, add.source = TRUE)
+  print(head(names(gmt_with_source)))
+}
 }
 
 }

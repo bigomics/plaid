@@ -148,7 +148,6 @@ dual_test <- function(X, y, G, gsetX=NULL, fc.test="cor", pv1=NULL, pv2=NULL,
 #'   p-values, and combined statistical measures.
 #'
 #' @examples
-#' \dontrun{
 #' # Create example expression matrix
 #' set.seed(123)
 #' X <- matrix(rnorm(1000), nrow = 100, ncol = 20)
@@ -165,13 +164,16 @@ dual_test <- function(X, y, G, gsetX=NULL, fc.test="cor", pv1=NULL, pv2=NULL,
 #'   "Pathway3" = paste0("GENE", 30:50)
 #' )
 #' 
-#' # Perform dualGSEA with fgsea (requires fgsea package)
-#' results <- dualGSEA(X, y, gmt, fc.test = "fgsea", gsea.method = "replaid.ssgsea")
-#' print(head(results))
-#' 
-#' # Perform dualGSEA with correlation test
+#' # Perform dualGSEA with correlation test (fast method)
 #' results_cor <- dualGSEA(X, y, gmt, fc.test = "cor", gsea.method = "replaid.gsva")
 #' print(head(results_cor))
+#' 
+#' \donttest{
+#' # Perform dualGSEA with fgsea (requires fgsea package)
+#' if (requireNamespace("fgsea", quietly = TRUE)) {
+#'   results <- dualGSEA(X, y, gmt, fc.test = "fgsea", gsea.method = "replaid.ssgsea")
+#'   print(head(results))
+#' }
 #' }
 #'
 #' @export
@@ -407,15 +409,25 @@ matrix_metap <- function(plist, method='stouffer') {
 #' P-values are computed from statistical distribution
 #'
 #' @examples
-#' \dontrun{
-#' librart(playbase)
-#' ranks <- sample(1:10000, 1000, replace = TRUE)
-#' names(ranks) <- replicate(1000, paste(sample(LETTERS, 4, replace = TRUE), collapse = ""))
-#' genesets <- matrix(rnorm(1000 * 20), ncol = 20)
-#' rownames(genesets) <- names(ranks)
+#' # Create example rank vector
+#' set.seed(123)
+#' ranks <- rnorm(100)
+#' names(ranks) <- paste0("GENE", 1:100)
+#' 
+#' # Create example gene sets as sparse matrix
+#' gmt <- list(
+#'   "Pathway1" = paste0("GENE", 1:20),
+#'   "Pathway2" = paste0("GENE", 15:35),
+#'   "Pathway3" = paste0("GENE", 30:50)
+#' )
+#' genesets <- gmt2mat(gmt)
 #'
-#' gset.rankcor(ranks, genesets, compute.p = TRUE)
-#' }
+#' # Calculate rank correlation
+#' result <- gset.rankcor(ranks, genesets, compute.p = TRUE)
+#' print(result$rho)
+#' print(result$p.value)
+#' 
+#' @export
 gset.rankcor <- function(rnk, gset, compute.p = FALSE, use.rank = TRUE) {
   if (ncol(gset) == 0 || NCOL(rnk) == 0) {
     if (ncol(gset) == 0) message("ERROR. gset has zero columns")

@@ -107,13 +107,16 @@ print(gsetX[1:3, 1:5])
 # Use sum statistics instead of mean
 gsetX_sum <- plaid(X, matG, stats = "sum")
 
-\dontrun{
-# Using real data (if available)
-load(system.file("extdata", "pbmc3k-50cells.rda", package = "plaid"))
-hallmarks <- system.file("extdata", "hallmarks.gmt", package = "plaid")
-gmt <- read.gmt(hallmarks)
-matG <- gmt2mat(gmt)
-gsetX <- plaid(X, matG)
+\donttest{
+# Using real data (if available in package)
+extdata_path <- system.file("extdata", "pbmc3k-50cells.rda", package = "plaid")
+if (file.exists(extdata_path)) {
+  load(extdata_path)
+  hallmarks <- system.file("extdata", "hallmarks.gmt", package = "plaid")
+  gmt <- read.gmt(hallmarks)
+  matG <- gmt2mat(gmt)
+  gsetX <- plaid(X, matG)
+}
 }
 
 }

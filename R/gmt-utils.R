@@ -129,15 +129,18 @@ mat2gmt <- function(mat) {
 #' @return A list of gene sets: each gene set is represented as a character vector of gene names.
 #' 
 #' @examples
-#' \dontrun{
-#' # Read GMT file
-#' gmt <- read.gmt("pathways.gmt")
-#' print(names(gmt))
-#' print(gmt[[1]])
-#' 
-#' # Read with source information
-#' gmt_with_source <- read.gmt("pathways.gmt", add.source = TRUE)
-#' print(names(gmt_with_source))
+#' \donttest{
+#' # Read GMT file (requires file to exist)
+#' gmt_file <- system.file("extdata", "hallmarks.gmt", package = "plaid")
+#' if (file.exists(gmt_file)) {
+#'   gmt <- read.gmt(gmt_file)
+#'   print(names(gmt))
+#'   print(head(gmt[[1]]))
+#'   
+#'   # Read with source information
+#'   gmt_with_source <- read.gmt(gmt_file, add.source = TRUE)
+#'   print(head(names(gmt_with_source)))
+#' }
 #' }
 #'
 read.gmt <- function(gmt.file,
@@ -190,12 +193,17 @@ read.gmt <- function(gmt.file,
 #'   "Pathway3" = c("GENE1", "GENE5", "GENE6")
 #' )
 #' 
-#' \dontrun{
-#' # Write to GMT file
-#' write.gmt(gmt, "output.gmt")
+#' \donttest{
+#' # Write to GMT file (creates file in temp directory)
+#' temp_file <- tempfile(fileext = ".gmt")
+#' write.gmt(gmt, temp_file)
 #' 
 #' # Write with custom source information
-#' write.gmt(gmt, "output_with_source.gmt", source = c("DB1", "DB2", "DB3"))
+#' temp_file2 <- tempfile(fileext = ".gmt")
+#' write.gmt(gmt, temp_file2, source = c("DB1", "DB2", "DB3"))
+#' 
+#' # Clean up
+#' unlink(c(temp_file, temp_file2))
 #' }
 #'
 write.gmt <- function(gmt, file, source = NA) {

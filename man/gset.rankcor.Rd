@@ -34,13 +34,22 @@ rnk by computing column-wise correlations.
 P-values are computed from statistical distribution
 }
 \examples{
-\dontrun{
-librart(playbase)
-ranks <- sample(1:10000, 1000, replace = TRUE)
-names(ranks) <- replicate(1000, paste(sample(LETTERS, 4, replace = TRUE), collapse = ""))
-genesets <- matrix(rnorm(1000 * 20), ncol = 20)
-rownames(genesets) <- names(ranks)
+# Create example rank vector
+set.seed(123)
+ranks <- rnorm(100)
+names(ranks) <- paste0("GENE", 1:100)
 
-gset.rankcor(ranks, genesets, compute.p = TRUE)
-}
+# Create example gene sets as sparse matrix
+gmt <- list(
+  "Pathway1" = paste0("GENE", 1:20),
+  "Pathway2" = paste0("GENE", 15:35),
+  "Pathway3" = paste0("GENE", 30:50)
+)
+genesets <- gmt2mat(gmt)
+
+# Calculate rank correlation
+result <- gset.rankcor(ranks, genesets, compute.p = TRUE)
+print(result$rho)
+print(result$p.value)
+
 }
