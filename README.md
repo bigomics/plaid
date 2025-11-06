@@ -10,7 +10,7 @@ output is a gene set score matrix suitable for further analyses.
 
 A distinctive feature of PLAID is that it can simulate few of the most
 widely used gene set scoring algorithms (GSVA, ssGSEA, scSE, ucell, sing),
-enabling researchers to replace those by our functions with much improved
+enabling researchers to replace those functions and gaining much improved
 runtime efficiency and memory requirement. Typically, PLAID can be more than 
 100 times faster than the original algorithm.
 
