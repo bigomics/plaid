@@ -8,6 +8,12 @@ or proteomics data. For each sample, plaid computes the gene set score
 as the average intensity of the genes/proteins in the gene set. The
 output is a gene set score matrix suitable for further analyses.
 
+A distinctive feature of PLAID is that it can simulate few of the most
+widely used gene set scoring algorithms (GSVA, ssGSEA, scSE, ucell, sing),
+enabling researchers to replace those by our functions with much improved
+runtime efficiency and memory requirement. Typically, PLAID can be more than 
+100 times faster than the original algorithm.
+
 Plaid is freely available on GitHub. It's a main gene sets scoring
 algorithm in OmicsPlayground, our Bioinformatics platform at BigOmics
 Analytics. In OmicsPlayground, you can perform Plaid without coding
