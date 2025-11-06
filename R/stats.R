@@ -269,7 +269,7 @@ fc_ttest <- function(fc, G, sort.by="pvalue") {
   pv <- mt$p[,1]
   df <- mt$mean[,1]
   qv <- p.adjust(pv, method="fdr")
-  gsetFC <- gset_averageCLR(fc, matG, center = FALSE, use.rank = FALSE)[,1]
+  gsetFC <- gset_averageCLR(fc, G, center = FALSE, use.rank = FALSE)[,1]
   
   res <- cbind(
     gsetFC = gsetFC,
