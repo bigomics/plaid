@@ -1,6 +1,6 @@
 [![codecov](https://codecov.io/github/bigomics/plaid/graph/badge.svg?token=66J6W41C0G)](https://codecov.io/github/bigomics/plaid)
 
-# PLAID
+# PLAID: ultrafast single-sample gene set enrichment scoring
 
 Plaid (Pathway Level Average Intensity Detection) is an ultra-fast
 method to compute single-sample enrichment scores for gene expression
@@ -46,6 +46,10 @@ For detailed usage examples and tutorials, please see our vignettes:
 - Works with regular matrices, sparse matrices, and Bioconductor data structures
 - Includes multiple scoring methods (plaid, sing, ssgsea, scSE, ucell, gsva)
 - Built-in differential enrichment testing
+
+## References
+
+- Zito A., et al. PLAID: ultrafast single-sample gene set enrichment scoring. [BioRxiv preprint](https://www.biorxiv.org/content/10.1101/2025.06.14.659661v1)
 
 ## Support
 
