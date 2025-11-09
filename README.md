@@ -17,9 +17,9 @@ runtime efficiency and memory requirement. Typically, PLAID can be more than
 #### Key features
 
 - Ultra-fast single-sample gene set enrichment scoring
-- Automatically detects and handles Bioconductor objects (`SummarizedExperiment`, `SingleCellExperiment`, `BiocSet`)
-- Works with regular matrices, sparse matrices, and Bioconductor data structures
 - Includes multiple scoring methods (plaid, sing, ssgsea, scSE, ucell, gsva)
+- Works with regular matrices, sparse matrices, and Bioconductor data structures
+- Automatically detects and handles Bioconductor objects (`SummarizedExperiment`, `SingleCellExperiment`, `BiocSet`)
 - Built-in differential enrichment testing
 
 #### Warning
