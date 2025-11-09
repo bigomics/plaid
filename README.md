@@ -1,8 +1,8 @@
+# PLAID: ultrafast single-sample gene set enrichment  <img src='man/figures/logo.png' align="right" height="150"/>
+
 [![codecov](https://codecov.io/github/bigomics/plaid/graph/badge.svg?token=66J6W41C0G)](https://codecov.io/github/bigomics/plaid)
 
-# PLAID: ultrafast single-sample gene set enrichment scoring
-
-Plaid (Pathway Level Average Intensity Detection) is an ultra-fast
+PLAID (Pathway Level Average Intensity Detection) is an ultrafast
 method to compute single-sample enrichment scores for gene expression
 or proteomics data. For each sample, plaid computes the gene set score
 as the average intensity of the genes/proteins in the gene set. The
@@ -14,10 +14,18 @@ enabling researchers to replace those functions and gaining much improved
 runtime efficiency and memory requirement. Typically, PLAID can be more than 
 100 times faster than the original algorithm.
 
-Plaid is freely available on GitHub. It's a main gene sets scoring
-algorithm in OmicsPlayground, our Bioinformatics platform at BigOmics
-Analytics. In OmicsPlayground, you can perform Plaid without coding
-needs.
+#### Key features
+
+- Ultra-fast single-sample gene set enrichment scoring
+- Automatically detects and handles Bioconductor objects (`SummarizedExperiment`, `SingleCellExperiment`, `BiocSet`)
+- Works with regular matrices, sparse matrices, and Bioconductor data structures
+- Includes multiple scoring methods (plaid, sing, ssgsea, scSE, ucell, gsva)
+- Built-in differential enrichment testing
+
+#### Warning
+
+PLAID is fast. Ludicrously fast. Please do not drink before driving and fasten your seatbelts
+before usage.
 
 ## Installation
 
@@ -46,14 +54,14 @@ For detailed usage examples and tutorials, please see our vignettes:
 - [Getting Started with PLAID](vignettes/plaid-vignette.Rmd)
 - [Comparing Methods](vignettes/compare-vignette.Rmd)
 
-**Key features:**
-- Ultra-fast single-sample gene set enrichment scoring
-- Automatically detects and handles Bioconductor objects (`SummarizedExperiment`, `SingleCellExperiment`, `BiocSet`)
-- Works with regular matrices, sparse matrices, and Bioconductor data structures
-- Includes multiple scoring methods (plaid, sing, ssgsea, scSE, ucell, gsva)
-- Built-in differential enrichment testing
+PLAID is the main gene sets scoring algorithm in OmicsPlayground, our 
+Bioinformatics platform at BigOmics Analytics. In OmicsPlayground, you 
+can perform PLAID without coding needs.
 
 ## References
+
+For more technical details please refer to our papers. Please cite us when you use
+PLAID as part of your research.
 
 - Zito A., et al. PLAID: ultrafast single-sample gene set enrichment scoring. [BioRxiv preprint](https://www.biorxiv.org/content/10.1101/2025.06.14.659661v1). June 2025.
 
