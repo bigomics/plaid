@@ -54,7 +54,7 @@ For detailed usage examples and tutorials, please see our vignettes:
 - [Getting Started with PLAID](vignettes/plaid-vignette.Rmd)
 - [Comparing Methods](vignettes/compare-vignette.Rmd)
 
-PLAID is the main gene sets scoring algorithm in OmicsPlayground, our 
+PLAID is the main gene set scoring algorithm in OmicsPlayground, our 
 Bioinformatics platform at BigOmics Analytics. In OmicsPlayground, you 
 can perform PLAID without coding needs.
 
