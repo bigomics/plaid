@@ -332,12 +332,137 @@ test_that("write.gmt handles source parameter correctly", {
   unlink(temp_file)
 })
 
-test_that("read.gmt parsing has known issues", {
-  # Note: read.gmt has a parsing bug in the current implementation
-  # It uses lapply(gmt, strsplit, ...) which creates double-nested lists
-  # This causes vapply to fail when trying to extract pathway names
-  # Skipping these tests until the function is fixed
-  skip("read.gmt has a parsing bug - see issue with lapply(gmt, strsplit, ...)")
+test_that("read.gmt reads GMT file correctly", {
+  # Create test GMT data
+  gmt_orig <- list(
+    "Pathway1" = c("GENE1", "GENE2", "GENE3"),
+    "Pathway2" = c("GENE4", "GENE5"),
+    "Pathway3" = c("GENE6", "GENE7", "GENE8")
+  )
+  
+  # Create temporary file
+  temp_file <- tempfile(fileext = ".gmt")
+  write.gmt(gmt_orig, temp_file)
+  
+  # Read back
+  gmt_read <- read.gmt(temp_file)
+  
+  # Check output type
+  expect_true(is.list(gmt_read))
+  
+  # Check number of pathways
+  expect_equal(length(gmt_read), 3)
+  
+  # Check pathway names
+  expect_equal(names(gmt_read), names(gmt_orig))
+  
+  # Check pathway contents
+  expect_equal(sort(gmt_read$Pathway1), sort(gmt_orig$Pathway1))
+  expect_equal(sort(gmt_read$Pathway2), sort(gmt_orig$Pathway2))
+  expect_equal(sort(gmt_read$Pathway3), sort(gmt_orig$Pathway3))
+  
+  # Cleanup
+  unlink(temp_file)
+})
+
+test_that("read.gmt and write.gmt are inverse operations", {
+  # Create test GMT data
+  gmt_orig <- list(
+    "Pathway1" = c("GENE1", "GENE2", "GENE3"),
+    "Pathway2" = c("GENE2", "GENE4", "GENE5"),
+    "Pathway3" = c("GENE1", "GENE5", "GENE6")
+  )
+  
+  # Write and read back
+  temp_file <- tempfile(fileext = ".gmt")
+  write.gmt(gmt_orig, temp_file)
+  gmt_read <- read.gmt(temp_file)
+  
+  # Should get the same data back
+  expect_equal(length(gmt_read), length(gmt_orig))
+  expect_equal(names(gmt_read), names(gmt_orig))
+  
+  for (pathway in names(gmt_orig)) {
+    expect_equal(sort(gmt_read[[pathway]]), sort(gmt_orig[[pathway]]))
+  }
+  
+  # Cleanup
+  unlink(temp_file)
+})
+
+test_that("read.gmt handles add.source parameter", {
+  # Create test GMT with source info
+  gmt_orig <- list(
+    "Pathway1" = c("GENE1", "GENE2"),
+    "Pathway2" = c("GENE3", "GENE4")
+  )
+  
+  temp_file <- tempfile(fileext = ".gmt")
+  write.gmt(gmt_orig, temp_file, source = c("DB1", "DB2"))
+  
+  # Read without source
+  gmt_no_source <- read.gmt(temp_file, add.source = FALSE)
+  expect_equal(names(gmt_no_source), c("Pathway1", "Pathway2"))
+  
+  # Read with source
+  gmt_with_source <- read.gmt(temp_file, add.source = TRUE)
+  expect_true(grepl("DB1", names(gmt_with_source)[1]))
+  expect_true(grepl("DB2", names(gmt_with_source)[2]))
+  expect_true(grepl("Pathway1", names(gmt_with_source)[1]))
+  expect_true(grepl("Pathway2", names(gmt_with_source)[2]))
+  
+  # Cleanup
+  unlink(temp_file)
+})
+
+test_that("read.gmt handles nrows parameter", {
+  # Create test GMT with multiple pathways
+  gmt_orig <- list(
+    "Pathway1" = c("GENE1", "GENE2"),
+    "Pathway2" = c("GENE3", "GENE4"),
+    "Pathway3" = c("GENE5", "GENE6"),
+    "Pathway4" = c("GENE7", "GENE8")
+  )
+  
+  temp_file <- tempfile(fileext = ".gmt")
+  write.gmt(gmt_orig, temp_file)
+  
+  # Read only first 2 rows
+  gmt_partial <- read.gmt(temp_file, nrows = 2)
+  
+  expect_equal(length(gmt_partial), 2)
+  expect_equal(names(gmt_partial), c("Pathway1", "Pathway2"))
+  
+  # Cleanup
+  unlink(temp_file)
+})
+
+test_that("read.gmt handles empty gene lists", {
+  # Create GMT file with a pathway that has no genes
+  temp_file <- tempfile(fileext = ".gmt")
+  
+  # Write manually to create edge case
+  writeLines(c(
+    "Pathway1\tDB1\tGENE1\tGENE2",
+    "Pathway2\tDB2",  # No genes
+    "Pathway3\tDB3\tGENE3"
+  ), temp_file)
+  
+  gmt <- read.gmt(temp_file)
+  
+  # Should still read all pathways
+  expect_equal(length(gmt), 3)
+  expect_equal(names(gmt), c("Pathway1", "Pathway2", "Pathway3"))
+  
+  # Pathway2 should be empty
+  expect_equal(length(gmt$Pathway2), 0)
+  
+  # Other pathways should have genes
+  expect_equal(gmt$Pathway1, c("GENE1", "GENE2"))
+  expect_equal(gmt$Pathway3, "GENE3")
+  
+  # Cleanup
+  unlink(temp_file)
 })
 
 
