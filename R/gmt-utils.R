@@ -152,7 +152,7 @@ read.gmt <- function(gmt.file,
   if (!is.null(dir)) f0 <- paste(sub("/$", "", dir), "/", gmt.file, sep = "")
   gmt <- utils::read.csv(f0, sep = "!", header = FALSE, comment.char = "#", nrows = nrows)[, 1]
   gmt <- as.character(gmt)
-  gmt <- lapply(gmt, strsplit, split = "\t")
+  gmt <- lapply(gmt, function(s) strsplit(s, split = "\t")[[1]])
   names(gmt) <- NULL
   gmt.name <- vapply(gmt, "[", character(1), 1)
   gmt.source <- vapply(gmt, "[", character(1), 2)
