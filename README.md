@@ -24,8 +24,7 @@ runtime efficiency and memory requirement. Typically, PLAID can be more than
 
 #### Warning
 
-PLAID is fast. Ludicrously fast. Please do not drink before driving and fasten your seatbelts
-before usage.
+PLAID is fast. Ludicrously fast. Please fasten your seatbelts and do not drink before usage.
 
 ## Installation
 
