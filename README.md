@@ -4,15 +4,15 @@
 
 PLAID (Pathway Level Average Intensity Detection) is an ultrafast
 method to compute single-sample enrichment scores for gene expression
-or proteomics data. For each sample, plaid computes the gene set score
+or proteomics data. For each sample, PLAID computes the gene set score
 as the average intensity of the genes/proteins in the gene set. The
 output is a gene set score matrix suitable for further analyses.
 
 A distinctive feature of PLAID is that it can simulate few of the most
-widely used gene set scoring algorithms (GSVA, ssGSEA, scSE, ucell, sing),
-enabling researchers to replace those functions and gaining much improved
+widely used single-sample gene set scoring algorithms (GSVA, ssGSEA, scSE, ucell, sing),
+enabling researchers to replace those functions and gain much improved
 runtime efficiency and memory requirement. Typically, PLAID can be more than 
-100 times faster than the original algorithm.
+100 times faster and requiring 10 times less memory than the original algorithm.
 
 #### Key features
 
