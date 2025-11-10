@@ -64,6 +64,7 @@ PLAID as part of your research. For the creative origin of the word 'plaid' as i
 'ludicrous speed' please cite the original 1987 movie.
 
 - Zito A., et al. PLAID: ultrafast single-sample gene set enrichment scoring. [BioRxiv preprint](https://www.biorxiv.org/content/10.1101/2025.06.14.659661v1). June 2025.
+- Akhmedov M., et al., Omics Playground: a comprehensive self-service platform for visualization, analytics and exploration of Big Omics Data, NAR Genomics and Bioinformatics, Volume 2, Issue 1, March 2020, [lqz019](https://doi.org/10.1093/nargab/lqz019).
 - Spaceballs (1987). Movie by Mel Brooks.
 
 ## Support
