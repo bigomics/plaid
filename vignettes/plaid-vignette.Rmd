@@ -116,7 +116,7 @@ calculate the scSE score (Pont et al., 2019).
 
 ## Very large matrices
 
-Plaid is fast and memery efficient because it uses very efficient
+Plaid is fast and memory efficient because it uses very efficient
 sparse matrix computation in the back. For very large `X`, plaid uses
 chunked computation by splitting the matrix in chunks to avoid index
 overflow. Should you encounter errors, please compute your dataset by
