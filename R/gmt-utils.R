@@ -208,7 +208,7 @@ read.gmt <- function(gmt.file,
 #'
 write.gmt <- function(gmt, file, source = NA) {
   gg <- lapply(gmt, paste, collapse = "\t")
-  if (is.na(source)) source <- names(gmt)
+  if (length(source) == 1 && is.na(source[1])) source <- names(gmt)
   ee <- paste(names(gmt), "\t", source, "\t", gg, sep = "")
   write(ee, file = file)
 }
