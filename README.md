@@ -71,3 +71,6 @@ PLAID as part of your research. For the creative origin of the word 'plaid' as i
 
 For support feel free to reach our Bioinformatics Data Science Team at
 BigOmics Analytics: help@bigomics.ch
+
+If you like PLAID, please recommend us to your friends, buy us some [coffee](https://buymeacoffee.com/bigomics)
+or brag about PLAID on your social media. 
