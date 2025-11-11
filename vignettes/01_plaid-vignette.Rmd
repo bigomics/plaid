@@ -53,8 +53,8 @@ load(system.file("extdata", "pbmc3k-50cells.rda", package = "plaid"),verbose=TRU
 dim(X)
 ```
 
-Note that X is the normalized expression matrix form the Seurat
-object, not the raw counts matrix. We recommend to run Plaid on the
+Note that X is the normalized expression matrix from the Seurat
+object, not the raw counts matrix. We recommend to run plaid on the
 log transformed expression matrix, not on the counts, as the average
 in the logarithmic space is more robust and is in concordance to
 calculating the geometric mean.
@@ -72,7 +72,7 @@ computations. But even for dense matrices plaid is fast.
 
 For convenience we have included the 50 Hallmark genesets in our
 package. But we encourage you to download larger geneset collections
-as Plaid's speed advantage will be more apparent for larger datasets
+as plaid's speed advantage will be more apparent for larger datasets
 and large geneset collections.
 
 Plaid needs the gene sets as sparse matrix. If you have your
