@@ -19,7 +19,25 @@ knitr::opts_chunk$set(
 
 # Introduction
 
-Single-sample gene set and pathway scoring enable the prioritization of molecular signatures of individual samples, highlighting potential targets for personalized medicine. Several methods have been developed, each with distinct strengths and limitations. The most widely used include ssGSEA, GSVA, AUCell, Singscore, scSE and UCell. These methods differ in preprocessing steps of ranking, centering, and normalization. Despite methodical variations, these methods collectively offer vast flexibility for data analysis. Nevertheless, with the emergence of large-scale biological data (e.g., biobanks), most methods face substantial computational inefficiency. Except scSE, which is implemented in Go, other methods are in fact practically infeasible in runtime and memory requirements for large-scale data. This has limited the application of single-sample gene set scoring, hindering timely discovery.
+Single-sample gene set and pathway scoring enable the prioritization
+of molecular signatures of individual samples, highlighting potential
+targets for personalized medicine. Several methods have been
+developed, each with distinct strengths and limitations. The most
+widely used include [ssGSEA](https://github.com/rcastelo/GSVA),
+[GSVA](https://github.com/rcastelo/GSVA),
+[AUCell](https://github.com/aertslab/AUCell),
+[Singscore](https://github.com/DavisLaboratory/singscore),
+[scSE](https://doi.org/10.1093/nar/gkz601) and
+[UCell](https://github.com/carmonalab/UCell). These methods differ in
+preprocessing steps of ranking, centering, and normalization. Despite
+methodical variations, these methods collectively offer vast
+flexibility for data analysis. Nevertheless, with the emergence of
+large-scale biological data (e.g., biobanks), most methods face
+substantial computational inefficiency. Except scSE, which is
+implemented in Go, other methods are in fact practically infeasible in
+runtime and memory requirements for large-scale data. This has limited
+the application of single-sample gene set scoring, hindering timely
+discovery.
 
 We address this critical issue with PLAID (Pathway Level Average Intensity Detection). Within each sample, PLAID identifies the genes mapped within a gene set and calculates the gene set score as the average log-intensity of genes in the gene set. PLAID does not zero-center or rank features, and leverages sparse matrices for efficient computations. 
 

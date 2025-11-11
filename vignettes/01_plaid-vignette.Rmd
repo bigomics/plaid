@@ -180,16 +180,21 @@ text( fc[1:5], -log10(pv[1:5]), rownames(res)[1:5],pos=2)
 
 # Replicating ssGSEA, singscore and scSE
 
-Plaid can be used to replicated the singscore (Fouratan et al., 2018)
-and Single-Cell Signature Explorer (scSE) score (Pont et al., 2019).
-But using plaid, the computation is much faster than the original
-code.
+Plaid can be used to replicate other enrichment score such as
+[ssGSEA](https://github.com/rcastelo/GSVA),
+[GSVA](https://github.com/rcastelo/GSVA),
+[AUCell](https://github.com/aertslab/AUCell),
+[Singscore](https://github.com/DavisLaboratory/singscore),
+[scSE](https://doi.org/10.1093/nar/gkz601) and
+[UCell](https://github.com/carmonalab/UCell). But using plaid, the
+computation is much faster than the original code.
 
 ## Replicating singscore
 
-Computing the singscore requires to compute the ranks of the
-expression matrix. We have wrapped this in a single convenience
-function:
+Computing the
+[singscore](https://github.com/DavisLaboratory/singscore) requires to
+compute the ranks of the expression matrix. We have wrapped this in a
+single convenience function:
 
 ```{r}
 sing <- replaid.sing(X, matG)
@@ -211,18 +216,22 @@ ssgsea <- replaid.ssgsea(X, matG, alpha=0)
 ```
 
 We have extensively compared the results of `replaid.ssgsea()` and
-from the original `GSVA` R package. Note the rank weight parameter
-alpha. For `alpha=0` we obtained identical result for the score, logFC
-and p-values. For non-zero values for alpha the results are close but
-not exactly the same. The default value in the original publication
-and in GSVA is `alpha=0.25`.
+from the original [GSVA](https://github.com/rcastelo/GSVA) R
+package. Note the rank weight parameter alpha. For `alpha=0` we
+obtained identical result for the score, logFC and p-values. For
+non-zero values for alpha the results are close but not exactly the
+same. The default value in the original publication and in GSVA is
+`alpha=0.25`.
 
 
 ## Replicating the scSE score
 
-Computing the scSE requires running plaid on the linear (not
-logarithmic) score and perform additional normalization by the total
-UMI per sample. We have wrapped this in a single convenience function:
+[Single-cell Signature Explorer
+(scSE)](https://doi.org/10.1093/nar/gkz601) is a fast enrichment
+algorithm implemented in GO. Computing the scSE score requires running
+plaid on the linear (not logarithmic) score and perform additional
+normalization by the total UMI per sample. We have wrapped this in a
+single convenience function:
 
 ```{r}
 scse <- replaid.scse(X, matG, removeLog2=TRUE, scoreMean=FALSE)
