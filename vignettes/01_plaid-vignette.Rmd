@@ -165,7 +165,7 @@ and also corresponds to the average foldchange of the genes in the
 gene set. The column 'p.fc corresponds to the test on the preranked
 logFC, the column 'p.ss' corresponds to the two-group t-test on the
 geneset scores `gsetX`. The two p-values are then combined using
-Stouffer's method in the column 'p.meta' and adjusted for multiple
+Stouffer's method in the column 'p.dual' and adjusted for multiple
 testing in column `q.dual`.
 
 We can also show the results as a volcano plot:
