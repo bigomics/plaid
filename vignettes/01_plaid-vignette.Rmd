@@ -19,8 +19,8 @@ knitr::opts_chunk$set(
 
 # Introduction
 
-We developed PLAID (Pathway Level Average Intensity Detection), a
-novel, ultrafast and memory optimized gene set scoring
+PLAID (Pathway Level Average Intensity Detection) is a
+novel, ultrafast and memory optimized gene set enrichment scoring
 algorithm. PLAID demonstrates accurate gene set scoring and
 outperforms all currently available gene set scoring methods in large
 bulk and single-cell RNA-seq datasets.
