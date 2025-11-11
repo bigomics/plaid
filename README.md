@@ -63,7 +63,7 @@ For more technical details please refer to our papers. Please cite us when you u
 PLAID as part of your research. 
 
 - Zito A., et al. PLAID: ultrafast single-sample gene set enrichment scoring. [BioRxiv preprint](https://www.biorxiv.org/content/10.1101/2025.06.14.659661v1). June 2025.
-- Akhmedov M., et al., Omics Playground: a comprehensive self-service platform for visualization, analytics and exploration of Big Omics Data, NAR Genomics and Bioinformatics, Volume 2, Issue 1, March 2020, [lqz019](https://doi.org/10.1093/nargab/lqz019).
+- Akhmedov M., et al., Omics Playground: a comprehensive self-service platform for visualization, analytics and exploration of Big Omics Data, NAR Genomics and Bioinformatics, 2020, [lqz019](https://doi.org/10.1093/nargab/lqz019).
 
 ## Support
 
