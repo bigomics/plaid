@@ -24,7 +24,7 @@ runtime efficiency and memory requirement. Typically, PLAID can be more than
 
 #### Warning
 
-PLAID is fast. Ludicrously fast. Please fasten seatbelts and do not drink before usage.
+PLAID is fast. Ludicrously fast. Please do not drink and fasten your seatbelts before usage.
 
 ## Installation
 
@@ -60,17 +60,15 @@ can perform PLAID without coding needs.
 ## References
 
 For more technical details please refer to our papers. Please cite us when you use
-PLAID as part of your research. For the creative origin of the word 'plaid' as in 
-'ludicrous speed' please cite the original 1987 movie.
+PLAID as part of your research. 
 
 - Zito A., et al. PLAID: ultrafast single-sample gene set enrichment scoring. [BioRxiv preprint](https://www.biorxiv.org/content/10.1101/2025.06.14.659661v1). June 2025.
-- Akhmedov M., et al., Omics Playground: a comprehensive self-service platform for visualization, analytics and exploration of Big Omics Data, NAR Genomics and Bioinformatics, Volume 2, Issue 1, March 2020, [lqz019](https://doi.org/10.1093/nargab/lqz019).
-- Spaceballs (1987). Movie by Mel Brooks.
+- Akhmedov M., et al., Omics Playground: a comprehensive self-service platform for visualization, analytics and exploration of Big Omics Data, NAR Genomics and Bioinformatics, 2020, [lqz019](https://doi.org/10.1093/nargab/lqz019).
 
 ## Support
 
 For support feel free to reach our Bioinformatics Data Science Team at
 BigOmics Analytics: help@bigomics.ch
 
-If you like PLAID, please recommend us to your friends, buy us some [coffee](https://buymeacoffee.com/bigomics)
+If you like PLAID, please recommend us to your friends, buy us [coffee](https://buymeacoffee.com/bigomics)
 or brag about PLAID on your social media. 
