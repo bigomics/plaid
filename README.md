@@ -32,11 +32,11 @@ faster and requiring 10 times less memory than the original algorithm.
 
 #### Warning
 
-PLAID is fast. Ludicrously fast. Do not drink and please fasten your seatbelts before usage.
+PLAID is fast. Ludicrously fast. Please fasten your seatbelts before usage.
 
 ## Installation
 
-You can install plaid from Bioconductor:
+You can install PLAID from Bioconductor:
 
 ```r
 BiocManager::install("plaid")
