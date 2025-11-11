@@ -1,5 +1,5 @@
 ---
-title: "PLAID: ultrafast single-sample enrichment scoring"
+title: "Getting Started with PLAID"
 author: "BigOmics Analytics"
 package: plaid
 output: 
