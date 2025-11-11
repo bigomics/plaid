@@ -2,7 +2,7 @@
 
 [![codecov](https://codecov.io/github/bigomics/plaid/graph/badge.svg?token=66J6W41C0G)](https://codecov.io/github/bigomics/plaid)
 
-PLAID (Pathway Level Average Intensity Detection) is an ultrafast
+[PLAID](https://bigomics.github.io/plaid) (Pathway Level Average Intensity Detection) is an ultrafast
 method to compute single-sample enrichment scores for gene expression
 or proteomics data. For each sample, PLAID computes the gene set score
 as the average intensity of the genes/proteins in the gene set. The
@@ -50,8 +50,8 @@ remotes::install_github("bigomics/plaid")
 
 For detailed usage examples and tutorials, please see our vignettes:
 
-- [Getting Started with PLAID](https://bigomics.github.io/plaid/inst/doc/01_plaid-vignette.html)
-- [Comparing PLAID with other methods](https://bigomics.github.io/plaid/inst/doc/02_compare-vignette.html)
+- [Getting Started with PLAID](https://bigomics.github.io/plaid/articles/01_plaid-vignette.html)
+- [Comparing PLAID with other methods](https://bigomics.github.io/plaid/articles/02_compare-vignette.html)
 
 PLAID is the main single-sample gene set scoring algorithm in OmicsPlayground, our 
 Bioinformatics platform at BigOmics Analytics. In OmicsPlayground, you 
