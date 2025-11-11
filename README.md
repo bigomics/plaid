@@ -14,7 +14,7 @@ widely used single-sample gene set scoring algorithms
 [GSVA](https://github.com/rcastelo/GSVA),
 [AUCell](https://github.com/aertslab/AUCell),
 [Singscore](https://github.com/DavisLaboratory/singscore),
-[scSE](https://doi.org/10.1093/nar/gkz601) and
+[scSE](https://doi.org/10.1093/nar/gkz601),
 [UCell](https://github.com/carmonalab/UCell)), enabling researchers
 to replace those functions and gain much improved runtime efficiency
 and memory requirement. Typically, PLAID can be more than 100 times
@@ -25,7 +25,9 @@ faster and requiring 10 times less memory than the original algorithm.
 - Ultra-fast single-sample gene set enrichment scoring
 - Includes multiple scoring methods (plaid, sing, ssgsea, scSE, ucell, gsva)
 - Works with regular matrices, sparse matrices, and Bioconductor data structures
-- Automatically detects and handles Bioconductor objects (`SummarizedExperiment`, `SingleCellExperiment`, `BiocSet`)
+- Automatically detects and handles Bioconductor objects 
+([`SummarizedExperiment`](https://bioconductor.org/packages/release/bioc/html/SummarizedExperiment.html), 
+[`SingleCellExperiment`](https://bioconductor.org/packages/release/bioc/html/SingleCellExperiment.html), [`BiocSet`](https://bioconductor.org/packages/release/bioc/html/BiocSet.html))
 - Built-in differential enrichment testing
 
 #### Warning
