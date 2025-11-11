@@ -50,8 +50,8 @@ remotes::install_github("bigomics/plaid")
 
 For detailed usage examples and tutorials, please see our vignettes:
 
-- [Getting Started with PLAID](https://bigomics.github.io/plaid/inst/doc/plaid-vignette.html)
-- [Comparing Methods](https://bigomics.github.io/plaid/inst/doc/compare-vignette.html)
+- [Getting Started with PLAID](https://bigomics.github.io/plaid/inst/doc/01_plaid-vignette.html)
+- [Comparing PLAID with other methods](https://bigomics.github.io/plaid/inst/doc/02_compare-vignette.html)
 
 PLAID is the main single-sample gene set scoring algorithm in OmicsPlayground, our 
 Bioinformatics platform at BigOmics Analytics. In OmicsPlayground, you 

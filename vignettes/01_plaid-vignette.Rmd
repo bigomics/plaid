@@ -1,11 +1,11 @@
 ---
-title: "PLAID: ultrafast single-sample enrichment scoring"
+title: "Getting Started with PLAID"
 author: "BigOmics Analytics"
 package: plaid
 output: 
     BiocStyle::html_document
 vignette: >
-  %\VignetteIndexEntry{PLAID: ultrafast single-sample enrichment scoring}
+  %\VignetteIndexEntry{Getting Started with PLAID}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
