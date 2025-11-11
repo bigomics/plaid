@@ -13,7 +13,7 @@ widely used single-sample gene set scoring algorithms
 ([ssGSEA](https://github.com/rcastelo/GSVA),
 [GSVA](https://github.com/rcastelo/GSVA),
 [AUCell](https://github.com/aertslab/AUCell),
-[Singscore](https://github.com/DavisLaboratory/singscore),
+[singscore](https://github.com/DavisLaboratory/singscore),
 [scSE](https://doi.org/10.1093/nar/gkz601),
 [UCell](https://github.com/carmonalab/UCell)), enabling researchers
 to replace those functions and gain much improved runtime efficiency
@@ -23,7 +23,7 @@ faster and requiring 10 times less memory than the original algorithm.
 #### Key features
 
 - Ultra-fast single-sample gene set enrichment scoring
-- Includes multiple scoring methods (plaid, sing, ssgsea, scSE, ucell, gsva)
+- Includes multiple scoring methods (plaid, singscore, ssGSEA, GSVA, scSE, UCell, AUCell)
 - Works with regular matrices, sparse matrices, and Bioconductor data structures
 - Automatically detects and handles Bioconductor objects 
 ([`SummarizedExperiment`](https://bioconductor.org/packages/release/bioc/html/SummarizedExperiment.html), 
