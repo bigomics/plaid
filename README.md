@@ -31,18 +31,12 @@ PLAID is fast. Ludicrously fast. Do not drink and please fasten your seatbelts b
 You can install plaid from Bioconductor:
 
 ```r
-if (!require("BiocManager", quietly = TRUE))
-    install.packages("BiocManager")
-
 BiocManager::install("plaid")
 ```
 
 You can also install the development version from GitHub:
 
 ```r
-if (!require("remotes", quietly = TRUE))
-    install.packages("remotes")
-
 remotes::install_github("bigomics/plaid")
 ```
 
