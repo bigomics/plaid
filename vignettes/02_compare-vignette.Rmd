@@ -1,11 +1,11 @@
 ---
-title: "PLAID: Comparison with other methods"
+title: "Comparing PLAID with other methods"
 author: "BigOmics Analytics"
 package: plaid
 output: 
     BiocStyle::html_document
 vignette: >
-  %\VignetteIndexEntry{Comparison with other methods}
+  %\VignetteIndexEntry{Comparing PLAID with other methods}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
