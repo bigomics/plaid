@@ -9,13 +9,13 @@ as the average intensity of the genes/proteins in the gene set. The
 output is a gene set score matrix suitable for further analyses.
 
 A distinctive feature of PLAID is that it can simulate few of the most
-widely used single-sample gene set scoring algorithms (
-[ssGSEA](https://github.com/rcastelo/GSVA),
+widely used single-sample gene set scoring algorithms 
+([ssGSEA](https://github.com/rcastelo/GSVA),
 [GSVA](https://github.com/rcastelo/GSVA),
 [AUCell](https://github.com/aertslab/AUCell),
 [Singscore](https://github.com/DavisLaboratory/singscore),
 [scSE](https://doi.org/10.1093/nar/gkz601) and
-[UCell](https://github.com/carmonalab/UCell) ), enabling researchers
+[UCell](https://github.com/carmonalab/UCell)), enabling researchers
 to replace those functions and gain much improved runtime efficiency
 and memory requirement. Typically, PLAID can be more than 100 times
 faster and requiring 10 times less memory than the original algorithm.
