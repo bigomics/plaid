@@ -1,6 +1,6 @@
 Package: plaid
 Title: PLAID ultrafast gene set enrichment scoring
-Version: 0.99.7
+Version: 0.99.8
 Authors@R: c(
     person("Antonino", "Zito", , "antonino.zito@bigomics.ch", role = c("aut","cre"),
         comment = c(ORCID = "0000-0003-1931-984X")),
