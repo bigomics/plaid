@@ -1,5 +1,5 @@
 Package: plaid
-Title: Pathway Level Average Intensity Detection
+Title: PLAID ultrafast gene set enrichment scoring
 Version: 0.99.4
 Authors@R: c(
     person("BigOmics", "Analytics", , "help@bigomics.ch", role = c("aut","cre"),
