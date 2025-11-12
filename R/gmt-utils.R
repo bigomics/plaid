@@ -1,6 +1,11 @@
 ## This file is part of the Omics Playground project.
 ## Copyright (c) 2018-2025 BigOmics Analytics SA. All rights reserved.
 
+#' @importFrom utils head read.csv
+#' @importFrom Matrix Matrix rowSums which
+#' @importFrom parallel mclapply
+NULL
+
 #' Convert GMT to Binary Matrix
 #'
 #' @description Convert a GMT file (Gene Matrix Transposed) to a binary matrix,
