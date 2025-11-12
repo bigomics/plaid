@@ -1,11 +1,11 @@
 Package: plaid
 Title: PLAID ultrafast gene set enrichment scoring
-Version: 0.99.6
+Version: 0.99.7
 Authors@R: c(
-        person("Antonino", "Zito", , "antonino.zito@bigomics.ch", role = "aut",
-           comment = c(ORCID = "0000-0003-1931-984X")),
-        person("Ivo", "Kwee", , "ivo.kwee@bigomics.ch", role = "aut",
-           comment = c(ORCID = "0000-0002-2751-4218"))
+    person("Antonino", "Zito", , "antonino.zito@bigomics.ch", role = "aut",
+        comment = c(ORCID = "0000-0003-1931-984X")),
+    person("Ivo", "Kwee", , "ivo.kwee@bigomics.ch", role = "aut",
+        comment = c(ORCID = "0000-0002-2751-4218"))
   )
 Description: PLAID (Pathway Level Average Intensity Detection) is an ultra-fast method to compute single-sample enrichment scores for gene expression or proteomics data. For each sample, plaid computes the gene set score as the average intensity of the genes/proteins in the gene set. The output is a gene set score matrix suitable for further analyses.
 License: GPL-3
