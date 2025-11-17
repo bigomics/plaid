@@ -90,11 +90,11 @@ dualGSEA <- function(X, y, gmt=NULL, G=NULL,
   
   ## pairwise test on logFC
   if(is.null(pv1)) {
+    message("FC testing using ", fc.method)
     m1 <- Matrix::rowMeans(X[,which(y==1),drop=FALSE])
     m0 <- Matrix::rowMeans(X[,which(y==0),drop=FALSE])
     fc <- m1 - m0
     if(fc.method == "fgsea") {
-      message("fc.method using fgsea")
       res1 <- fgsea::fgsea(gmt, fc)
       res1 <- data.frame(res1, row.names=res1$pathway)
       pv1 <- res1[,"pval"]
