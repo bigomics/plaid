@@ -3,6 +3,10 @@
 ## Copyright (c) 2018-2025 BigOmics Analytics SA. All rights reserved.
 ##
 
+#' @importFrom SummarizedExperiment assayNames assay
+#' @importFrom BiocSet es_elementset
+NULL
+
 #' Extract expression matrix from Bioconductor objects
 #'
 #' @description Internal function to extract expression matrix from various

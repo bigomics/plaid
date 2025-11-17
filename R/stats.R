@@ -2,6 +2,12 @@
 ##----------------- STATISTICAL TESTS ----------------------------
 ##----------------------------------------------------------------
 
+#' @importFrom stats p.adjust pt pchisq qnorm pnorm
+#' @importFrom Matrix rowMeans colSums crossprod t colScale
+#' @importFrom Rfast ttests
+#' @importFrom qlcMatrix corSparse
+NULL
+
 #' Statistical testing of differentially enrichment
 #'
 #' @description This function performs statistical testing for differential

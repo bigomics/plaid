@@ -13,7 +13,7 @@ widely used single-sample gene set scoring algorithms
 ([ssGSEA](https://github.com/rcastelo/GSVA),
 [GSVA](https://github.com/rcastelo/GSVA),
 [AUCell](https://github.com/aertslab/AUCell),
-[Singscore](https://github.com/DavisLaboratory/singscore),
+[singscore](https://github.com/DavisLaboratory/singscore),
 [scSE](https://doi.org/10.1093/nar/gkz601),
 [UCell](https://github.com/carmonalab/UCell)), enabling researchers
 to replace those functions and gain much improved runtime efficiency
@@ -23,7 +23,7 @@ faster and requiring 10 times less memory than the original algorithm.
 #### Key features
 
 - Ultra-fast single-sample gene set enrichment scoring
-- Includes multiple scoring methods (plaid, sing, ssgsea, scSE, ucell, gsva)
+- Includes multiple scoring methods (plaid, singscore, ssGSEA, GSVA, scSE, UCell, AUCell)
 - Works with regular matrices, sparse matrices, and Bioconductor data structures
 - Automatically detects and handles Bioconductor objects 
 ([`SummarizedExperiment`](https://bioconductor.org/packages/release/bioc/html/SummarizedExperiment.html), 
@@ -32,11 +32,11 @@ faster and requiring 10 times less memory than the original algorithm.
 
 #### Warning
 
-PLAID is fast. Ludicrously fast. Do not drink and please fasten your seatbelts before usage.
+PLAID is fast. Ludicrously fast. Please fasten your seatbelts before usage.
 
 ## Installation
 
-You can install plaid from Bioconductor:
+You can install PLAID from Bioconductor:
 
 ```r
 BiocManager::install("plaid")
@@ -64,7 +64,7 @@ can perform PLAID without coding needs.
 For more technical details please refer to our papers. Please cite us when you use
 PLAID as part of your research. 
 
-- Zito A., et al. PLAID: ultrafast single-sample gene set enrichment scoring. [BioRxiv preprint](https://www.biorxiv.org/content/10.1101/2025.06.14.659661v1). June 2025.
+- Zito A., et al. PLAID: ultrafast single-sample gene set enrichment scoring. Bioinformatics, 2025, [btaf621](https://doi.org/10.1093/bioinformatics/btaf621).
 - Akhmedov M., et al., Omics Playground: a comprehensive self-service platform for visualization, analytics and exploration of Big Omics Data, NAR Genomics and Bioinformatics, 2020, [lqz019](https://doi.org/10.1093/nargab/lqz019).
 
 ## Support
@@ -73,4 +73,4 @@ For support feel free to reach our Bioinformatics Data Science Team at
 BigOmics Analytics: help@bigomics.ch
 
 If you like PLAID, please recommend us to your friends, buy us [coffee](https://buymeacoffee.com/bigomics)
-or brag about PLAID on your social media. 
+and brag about PLAID on your social media. 

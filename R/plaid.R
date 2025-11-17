@@ -3,6 +3,13 @@
 ## Copyright (c) 2018-2025 BigOmics Analytics SA. All rights reserved.
 ##
 
+#' @importFrom methods as
+#' @importFrom stats ecdf
+#' @importFrom Matrix colSums colScale crossprod Diagonal rowMeans t which
+#' @importFrom matrixStats colRanks colMedians
+#' @importFrom sparseMatrixStats colRanks
+NULL
+
 #' Compute PLAID single-sample enrichment score 
 #'
 #' @description Compute single-sample geneset expression as the

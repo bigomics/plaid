@@ -26,7 +26,7 @@ developed, each with distinct strengths and limitations. The most
 widely used include [ssGSEA](https://github.com/rcastelo/GSVA),
 [GSVA](https://github.com/rcastelo/GSVA),
 [AUCell](https://github.com/aertslab/AUCell),
-[Singscore](https://github.com/DavisLaboratory/singscore),
+[singscore](https://github.com/DavisLaboratory/singscore),
 [scSE](https://doi.org/10.1093/nar/gkz601) and
 [UCell](https://github.com/carmonalab/UCell). These methods differ in
 preprocessing steps of ranking, centering, and normalization. Despite
