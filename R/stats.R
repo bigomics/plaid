@@ -72,7 +72,7 @@ dual_test <- function(X, y, G, gsetX=NULL, fc.test="cor", pv1=NULL, pv2=NULL,
     gsetX <- plaid(X, G)
   }
   pp <- intersect(rownames(gsetX),colnames(G))
-  gsetX <- gsetX[pp,,drop=FALSE]
+  gsetX <- gsetX[pp,colnames(X),drop=FALSE]
   G <- G[,pp,drop=FALSE]  
   
   e1 <- Matrix::rowMeans(gsetX[,y==1,drop=FALSE])
@@ -110,8 +110,9 @@ dual_test <- function(X, y, G, gsetX=NULL, fc.test="cor", pv1=NULL, pv2=NULL,
     res2 <- gset_ttest(gsetX, y) 
     pv2 <- res2[,'pvalue']
   }
-  
-  P <- cbind(pv1, pv2)  
+
+  gs <- rownames(gsetX)
+  P <- cbind(pv1[gs], pv2[gs])  
   P[is.na(P)] <- 1
   P <- pmin(pmax(P, 1e-99), 1-1e-99)
   colnames(P) <- c("p.fc","p.ss")
@@ -325,6 +326,9 @@ gset_averageCLR <- function(X, matG, center = TRUE, use.rank = FALSE) {
 #'   pvalue (p-value), and other t-test results.
 #'
 gset_ttest <- function(gsetX, y) {
+  ii <- which(!is.na(y))
+  gsetX <- gsetX[,ii]
+  y <- y[ii]
   if(!all(unique(y) %in% c(0,1))) stop("[gset_ttest] elements of y must be 0 or 1")
   res  <- Rfast::ttests(Matrix::t(gsetX), ina=y+1)
   rownames(res) <- rownames(gsetX)
@@ -332,7 +336,6 @@ gset_ttest <- function(gsetX, y) {
   res <- cbind( diff=diff, res)
   return(res)
 }
-
 
 ##----------------------------------------------------------------
 ##----------------- FUNCTIONS ------------------------------------
@@ -378,6 +381,8 @@ matrix_metap <- function(plist, method='stouffer') {
     zz <- lapply(plist, qnorm, lower.tail=FALSE) 
     zz <- Reduce('+', zz) / sqrt(np)
     pv <- pnorm(zz, lower.tail=FALSE)
+  } else if(method %in% c("maxp","pmax","maximump")) {
+    pv <- Reduce(pmax, plist)    
   } else {
     stop("Invalid method: ",method)
   }

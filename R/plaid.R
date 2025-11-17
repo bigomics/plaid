@@ -113,6 +113,12 @@ plaid <- function(X, matG, stats=c("mean","sum"), chunk=NULL, normalize=TRUE,
   stats <- stats[1]
   if (NCOL(X) == 1) X <- cbind(X)
 
+  ## make sure X is matrix (not dataframe) and convert to sparse if needed
+  if(!inherits(X, "Matrix")) {
+    X <- as.matrix(X)
+    if(mean(X==0,na.rm=TRUE)>0.5) X <- Matrix::Matrix(X, sparse=TRUE)
+  }
+  
   gg <- intersect(rownames(X), rownames(matG))
   if (length(gg) == 0) {
     message("[plaid] ERROR. No overlapping features.")
