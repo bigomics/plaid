@@ -2,7 +2,7 @@
 % Please edit documentation in R/stats.R
 \name{fc_ttest}
 \alias{fc_ttest}
-\title{Statistical testing of differentially enrichment}
+\title{T-test statistical testing of differentially enrichment}
 \usage{
 fc_ttest(fc, G, sort.by = "pvalue")
 }

@@ -139,18 +139,19 @@ on the score matrix `gsetX`.
 Another way to test whether a gene set is statistically significant
 would be to test whether the fold-change of the genes in the gene sets
 are statistically different than zero. That is, we can perform a one
-sample t-test on the logFC of the genes of each gene sets and test
+sample z-test on the logFC of the genes of each gene sets and test
 whether they are significantly different from zero. The logFC is
 computed from the original (log) expression matrix `X` and group
 vector `y`.
 
 
-The function `dual_test()` does both tests: the one-sample t-test on
-the logFC  and the two-group t-test on the gene set matrix `gsetX`.
+The function `dualGSEA()` does both tests: the one-sample z-test on
+the logFC  and the two-group t-test on the gene set matrix `gsetX`. 
+Dual testing has been suggested by Bull et al. (Sci Rep., 2024)
 
 ```{r}
 y <- 1*(celltype == "B")
-res <- dual_test(X, y, matG, gsetX=gsetX)
+res <- dualGSEA(X, y, G=matG)
 ```
 
 The top significant genesets can be shown with

@@ -8,23 +8,21 @@
 #' @importFrom qlcMatrix corSparse
 NULL
 
-#' Statistical testing of differentially enrichment
+#' Reimplementation of dualGSEA (Bull et al., 2024) but defaults with
+#' replaid backend. For the preranked test we still use fgsea. Should
+#' be much faster than original using fgsea + GSVA::ssGSEA.
 #'
-#' @description This function performs statistical testing for differential
-#' enrichment using plaid
-#'
-#' @param X Matrix of log expression value
-#' @param y Vector of 0s and 1s indicating group
+#' @param X Expression matrix with genes on rows and samples on columns
+#' @param y Binary vector (0/1) indicating group membership
+#' @param gmt List of gene sets in GMT format
 #' @param G Sparse matrix of gene sets. Non-zero entry indicates
 #'   gene/feature is part of gene sets. Features on rows, gene sets on
 #'   columns.
-#' @param gsetX Gene set score matrix which is output of
-#'   `plaid()`. Can be NULL in that case it will be recomputed from X
-#'   and G (default required).
-#' @param fc.test Method for fold change testing ("ztest", "rankcor", "cor"). Default "cor".
+#' @param fc.method Method for fold change testing ("fgsea", "ztest", "ttest", "rankcor", "cor")
+#' @param ss.method Method for single-sample enrichment ("plaid", "replaid.ssgsea", "replaid.gsva", "ssgsea", "gsva")
 #' @param pv1 Pre-computed p-values from fold change test. If NULL, will be computed based on fc.test.
 #' @param pv2 Pre-computed p-values from single sample test. If NULL, will be computed using gset_ttest.
-#' @param metap.method Method for combining p-values ("stouffer" or "fisher"). Default "stouffer".
+#' @param metap.method Method for combining p-values ("stouffer", "fisher" or "maxp"). Default "stouffer".
 #' @param sort.by Column name to sort results by ("p.dual", "gsetFC", "p.fc", "p.ss"). Default "p.dual".
 #' 
 #' @return Data frame with columns: gsetFC (gene set fold change), size (gene set size),
@@ -47,21 +45,105 @@ NULL
 #'   "Pathway2" = paste0("GENE", 15:35),
 #'   "Pathway3" = paste0("GENE", 30:50)
 #' )
-#' G <- gmt2mat(gmt)
 #' 
-#' # Perform dual test
-#' results <- dual_test(X, y, G)
-#' print(head(results))
-#' 
-#' # Perform dual test with correlation test
-#' results_cor <- dual_test(X, y, G, fc.test = "cor")
+#' # Perform dualGSEA with correlation test (fast method)
+#' results_cor <- dualGSEA(X, y, gmt, fc.method = "cor", ss.method = "replaid.gsva")
 #' print(head(results_cor))
+#' 
+#' \donttest{
+#' # Perform dualGSEA with fgsea (requires fgsea package)
+#' if (requireNamespace("fgsea", quietly = TRUE)) {
+#'   results <- dualGSEA(X, y, gmt, fc.method = "fgsea", ss.method = "replaid.ssgsea")
+#'   print(head(results))
+#' }
+#' }
 #'
 #' @export
-dual_test <- function(X, y, G, gsetX=NULL, fc.test="cor", pv1=NULL, pv2=NULL,
-                      metap.method="stouffer", sort.by='p.dual') {
+dualGSEA <- function(X, y, gmt=NULL, G=NULL, 
+                     fc.method = c("fgsea","rankcor","ztest","ttest","cor")[2],
+                     ss.method = c('plaid', 'replaid.ssgsea','replaid.gsva', 
+                       'ssgsea','gsva')[1],
+                     metap.method = c("stouffer","fisher","maxp")[1],
+                     pv1 = NULL, pv2 = NULL,
+                     sort.by='p.dual') {
+  #require(fgsea)
+  if (fc.method == "fgsea" && !requireNamespace("fgsea", quietly=TRUE)) {
+    warning("The fgsea package must be installed to use this functionality")
+    return(NULL)
+  }
+  if (ss.method %in% c("ssgsea","gsva") && !requireNamespace("GSVA", quietly=TRUE)) {
+    warning("The GSVA package must be installed to use this functionality")
+    return(NULL)
+  }
+  if(is.null(gmt) && is.null(G)) {
+    warning("at least gmt or matrix G must be given")
+    return(NULL)
+  }
+  
   if(!all(unique(y) %in% c(0,1,NA))) stop("elements of y must be 0 or 1")
-  if(is(G, "list")) G <- gmt2mat(G)
+  sel <- which(!is.na(y))
+  y <- y[sel]
+  X <- X[,sel,drop=FALSE] 
+  
+  if(is.null(G) && !is.null(gmt))  G <- gmt2mat(gmt)
+  if(is.null(gmt) && !is.null(G))  gmt <- mat2gmt(G)  
+  
+  ## pairwise test on logFC
+  if(is.null(pv1)) {
+    m1 <- Matrix::rowMeans(X[,which(y==1),drop=FALSE])
+    m0 <- Matrix::rowMeans(X[,which(y==0),drop=FALSE])
+    fc <- m1 - m0
+    if(fc.method == "fgsea") {
+      message("fc.method using fgsea")
+      res1 <- fgsea::fgsea(gmt, fc)
+      res1 <- data.frame(res1, row.names=res1$pathway)
+      pv1 <- res1[,"pval"]
+      names(pv1) <- rownames(res1)
+    } else if(fc.method %in% c('ttest','ztest')) {
+      if(inherits(X,"dgCMatrix")) {
+        sdx <- sparseMatrixStats::rowSds(X,na.rm=TRUE)
+      } else {
+        sdx <- matrixStats::rowSds(X,na.rm=TRUE)
+      }
+      sdx0 <- mean(sdx, na.rm=TRUE)
+      zc <- fc / (0.1*sdx0 + sdx)
+      if(fc.method == "ttest") {
+        res1 <- fc_ttest(zc, G, sort.by="none")
+        pv1 <- res1[,'pvalue']
+      }
+      if(fc.method == "ztest") {
+        res1 <- fc_ztest(zc, G, zmat=FALSE)
+        pv1 <- res1$p_value
+      }
+    } else if(fc.method == 'rankcor') {
+      res1 <- gset.rankcor(fc, G, compute.p=TRUE, use.rank=TRUE)
+      pv1 <- res1$p.value[,1]
+    } else if(fc.method == 'cor') {
+      res1 <- gset.rankcor(fc, G, compute.p=TRUE, use.rank=FALSE)
+      pv1 <- res1$p.value[,1]
+    } else {
+      stop("invalid fc.method method")
+    }
+  }
+  
+  ## single-sample test
+  message("single-sample testing using ", ss.method)
+  gsetX <- NULL
+  if(ss.method == "plaid") {
+    gsetX <- plaid::plaid(X, G)
+  }else if(ss.method == "gsva") {
+    gsvapar = GSVA::gsvaParam(X, gmt)
+    gsetX <- GSVA::gsva(gsvapar, verbose = FALSE)
+  } else if(ss.method == "ssgsea") {
+    gsvapar = GSVA::ssgseaParam(X, gmt)
+    gsetX <- GSVA::gsva(gsvapar, verbose = FALSE)
+  } else if(ss.method == "replaid.ssgsea") {
+    gsetX <- replaid.ssgsea(X, G)
+  } else if(ss.method == "replaid.gsva") {
+    gsetX <- replaid.gsva(X, G)
+  } else {
+    stop("Error: invalid ss.method: ",ss.method)
+  }
 
   gg <- intersect(rownames(G),rownames(X))
   sel <- which(!is.na(y))
@@ -69,10 +151,6 @@ dual_test <- function(X, y, G, gsetX=NULL, fc.test="cor", pv1=NULL, pv2=NULL,
   G <- G[gg,]
   y <- y[sel]
   
-  m1 <- Matrix::rowMeans(X[,which(y==1),drop=FALSE])
-  m0 <- Matrix::rowMeans(X[,which(y==0),drop=FALSE])
-  fc <- m1 - m0  
-
   if(is.null(gsetX)) {
     message("computing gsetX using plaid. please precompute for efficiency.")
     gsetX <- plaid(X, G)
@@ -83,40 +161,14 @@ dual_test <- function(X, y, G, gsetX=NULL, fc.test="cor", pv1=NULL, pv2=NULL,
   
   e1 <- Matrix::rowMeans(gsetX[,y==1,drop=FALSE])
   e0 <- Matrix::rowMeans(gsetX[,y==0,drop=FALSE])
-  gsetFC <- e1 - e0  
-  
+  gsetFC <- e1 - e0    
   gs.size <- Matrix::colSums(G!=0)[rownames(gsetX)]
-  if(0) {
-    wt <- gs.size / (wt0 + gs.size)
-    gsetFC  <- wt * res2[,'diff']  ## shrinked FC
-  }
-  
-  if(is.null(pv1)) {
-    if(fc.test == 'ztest') {
-      if(inherits(X,"dgCMatrix")) {
-        sdx <- sparseMatrixStats::rowSds(X,na.rm=TRUE)
-      } else {
-        sdx <- matrixStats::rowSds(X,na.rm=TRUE)
-      }
-      zc <- fc / (0.1 + sdx)
-      res1 <- fc_ttest(zc, G, sort.by="none") 
-      pv1 <- res1[,'pvalue']
-    } else if(fc.test == 'rankcor') {
-      res1 <- gset.rankcor(fc, G, compute.p=TRUE, use.rank=TRUE)
-      pv1 <- res1$p.value[,1]
-    } else if(fc.test == 'cor') {
-      res1 <- gset.rankcor(fc, G, compute.p=TRUE, use.rank=FALSE)
-      pv1 <- res1$p.value[,1]
-    } else {
-      stop("invalid fc.test method")
-    }
-  }
 
   if(is.null(pv2)) {
     res2 <- gset_ttest(gsetX, y) 
     pv2 <- res2[,'pvalue']
   }
-
+  
   gs <- rownames(gsetX)
   P <- cbind(pv1[gs], pv2[gs])  
   P[is.na(P)] <- 1
@@ -140,114 +192,8 @@ dual_test <- function(X, y, G, gsetX=NULL, fc.test="cor", pv1=NULL, pv2=NULL,
   res
 }
 
-#' Reimplementation of dualGSEA (Bull et al., 2024) but defaults with
-#' replaid backend. For the preranked test we still use fgsea. Should
-#' be much faster than original using fgsea + GSVA::ssGSEA.
-#'
-#' @param X Expression matrix with genes on rows and samples on columns
-#' @param y Binary vector (0/1) indicating group membership
-#' @param gmt List of gene sets in GMT format
-#' @param matG Optional sparse matrix of gene sets (will be computed from gmt if NULL)
-#' @param fc.test Method for fold change testing ("fgsea", "ztest", "rankcor", "cor")
-#' @param gsea.method Method for single-sample enrichment ("replaid.ssgsea", "replaid.gsva", "ssgsea", "gsva")
-#'
-#' @return Data frame with results from dual testing including fold changes,
-#'   p-values, and combined statistical measures.
-#'
-#' @examples
-#' # Create example expression matrix
-#' set.seed(123)
-#' X <- matrix(rnorm(1000), nrow = 100, ncol = 20)
-#' rownames(X) <- paste0("GENE", 1:100)
-#' colnames(X) <- paste0("Sample", 1:20)
-#' 
-#' # Create binary group vector
-#' y <- rep(c(0, 1), each = 10)
-#' 
-#' # Create example gene sets
-#' gmt <- list(
-#'   "Pathway1" = paste0("GENE", 1:20),
-#'   "Pathway2" = paste0("GENE", 15:35),
-#'   "Pathway3" = paste0("GENE", 30:50)
-#' )
-#' 
-#' # Perform dualGSEA with correlation test (fast method)
-#' results_cor <- dualGSEA(X, y, gmt, fc.test = "cor", gsea.method = "replaid.gsva")
-#' print(head(results_cor))
-#' 
-#' \donttest{
-#' # Perform dualGSEA with fgsea (requires fgsea package)
-#' if (requireNamespace("fgsea", quietly = TRUE)) {
-#'   results <- dualGSEA(X, y, gmt, fc.test = "fgsea", gsea.method = "replaid.ssgsea")
-#'   print(head(results))
-#' }
-#' }
-#'
-#' @export
-dualGSEA <- function(X, y, gmt, matG=NULL, fc.test="fgsea",
-                     gsea.method='replaid.ssgsea') {
-  #require(fgsea)
-  if (fc.test == "fgsea" && !requireNamespace("fgsea", quietly=TRUE)) {
-    warning("The fgsea package must be installed to use this functionality")
-    return(NULL)
-  }
-  if (gsea.method %in% c("ssgsea","gsva") && !requireNamespace("GSVA", quietly=TRUE)) {
-    warning("The GSVA package must be installed to use this functionality")
-    return(NULL)
-  }
-  
-  if(!all(unique(y) %in% c(0,1,NA))) stop("elements of y must be 0 or 1")
-  sel <- which(!is.na(y))
-  y <- y[sel]
-  X <- X[,sel,drop=FALSE]
-  
-  ## pairwise test on logFC
-  m1 <- Matrix::rowMeans(X[,which(y==1),drop=FALSE])
-  m0 <- Matrix::rowMeans(X[,which(y==0),drop=FALSE])
-  fc <- m1 - m0
-  pv1 <- NULL
-  if(fc.test == "fgsea") {
-    message("fc.test using fgsea")
-    res1 <- fgsea::fgsea(gmt, fc)
-    res1 <- data.frame(res1, row.names=res1$pathway)
-    pv1 <- res1[,"pval"]
-    names(pv1) <- rownames(res1)
-  } else if(fc.test %in% c("ztest","rankcor","cor")) {
-    message("fc.test using ",fc.test)
-    pv1 <- NULL
-  } else {
-    stop("Error: invalid fc.test: ",fc.test)
-  }
 
-  if(is.null(matG)) {
-    message("computing matG")
-    matG <- gmt2mat(gmt)
-  }
-  
-  ## single-sample test
-  message("single-sample testing using ", gsea.method)
-  gsetX <- NULL
-  if(gsea.method == "gsva") {
-    gsvapar = GSVA::gsvaParam(X, gmt)
-    gsetX <- GSVA::gsva(gsvapar, verbose = FALSE)
-  } else if(gsea.method == "ssgsea") {
-    gsvapar = GSVA::ssgseaParam(X, gmt)
-    gsetX <- GSVA::gsva(gsvapar, verbose = FALSE)
-  } else if(gsea.method == "replaid.ssgsea") {
-    gsetX <- replaid.ssgsea(X, matG)
-  } else if(gsea.method == "replaid.gsva") {
-    gsetX <- replaid.gsva(X, matG)
-  } else {
-    stop("Error: invalid gsea.method: ",gsea.method)
-  }
-
-  if(!is.null(pv1)) pv1 <- pv1[rownames(gsetX)]
-  res.dual <- dual_test(X, y, pv1=pv1, G=matG, gsetX=gsetX,
-    fc.test=fc.test, metap.method='stouffer', sort.by='p.dual')
-  return(res.dual)
-}
-
-#' Statistical testing of differentially enrichment
+#' T-test statistical testing of differentially enrichment
 #'
 #' This function performs statistical testing for differential
 #' enrichment using plaid
@@ -263,12 +209,6 @@ dualGSEA <- function(X, y, gmt, matG=NULL, fc.test="fgsea",
 #'
 fc_ttest <- function(fc, G, sort.by="pvalue") {
   if(is.null(names(fc))) stop("fc must have names")  
-  if(is.list(G)) {
-    message("[fc_ttest] converting gmt to sparse matrix...")
-    G <- gmt2mat(G)
-  } else {
-    ## message("[fc_ttest] sparse matrix provided")
-  }
   gg <- intersect(rownames(G),names(fc))
   fc <- fc[gg]
   G <- G[gg,]
@@ -290,6 +230,47 @@ fc_ttest <- function(fc, G, sort.by="pvalue") {
     res <- res[order(sort.sign*res[,sort.by]),]
   }
   res
+}
+
+#' Z-test statistical testing of differentially enrichment
+#'
+#' This function performs statistical testing for differential
+#' enrichment using plaid
+#'
+#' @param fc Vector of logFC values
+#' @param G Sparse matrix of gene sets. Non-zero entry indicates
+#'   gene/feature is part of gene sets. Features on rows, gene sets on
+#'   columns.
+#' @param zmat Logical indicating to return z-matrix
+#' @param alpha Scalar weight for SD estimation. Default 0.5.
+#' 
+#' @return List with element: z_statistic (z-statistic from one-sample z-test),
+#'   p_value (p-value from one-sample z-test), and zmat (z-matrix).
+#'
+fc_ztest <- function(fc, G, zmat=FALSE, alpha=0.5) {
+  if(is.null(names(fc))) stop("fc must have names")
+  gg <- intersect(rownames(G),names(fc))
+  sample_size <- Matrix::colSums(G[gg,]!=0)
+  sample_size <- pmax(sample_size, 1) ## avoid div-by-zero
+  sample_mean <- (Matrix::t(G[gg,]!=0) %*% fc[gg]) / sample_size
+  population_mean <- mean(fc, na.rm=TRUE)
+  population_var <- var(fc, na.rm=TRUE)
+  gfc <- (G[gg,]!=0) * fc[gg]
+  sample_var <- sparseMatrixStats::colVars(gfc) * nrow(G) / sample_size
+  alpha <- pmin(pmax(alpha,0), 0.999) ## limit
+  estim_sd <- sqrt( alpha*sample_var + (1-alpha)*population_var )
+  z_statistic <- (sample_mean - population_mean) / (estim_sd / sqrt(sample_size))
+  p_value <- 2 * pnorm(abs(z_statistic[,1]), lower.tail = FALSE)  
+  if(zmat) {
+    zmat <- (Matrix::t(gfc) / estim_sd)
+  } else {
+    zmat = NULL
+  }
+  list(
+    z_statistic = z_statistic[,1],
+    p_value = p_value,
+    zmat = zmat
+  )
 }
 
 #' Compute geneset expression as the average log-ration of genes in

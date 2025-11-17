@@ -33,13 +33,14 @@ create_stats_test_data <- function(n_genes = 100, n_samples = 20, n_pathways = 5
 }
 
 # ============================================================================
-# Test: dual_test()
+# Test: dualGSEA()
 # ============================================================================
 
-test_that("dual_test works with basic input", {
+test_that("dualGSEA works with replaid methods", {
   data <- create_stats_test_data()
   
-  result <- dual_test(data$X, data$y, data$G)
+  result <- dualGSEA(data$X, data$y, gmt = data$gmt, G = data$G,
+                            fc.method = "cor", ss.method = "replaid.ssgsea")
   
   expect_true(is.matrix(result) || is.data.frame(result))
   expect_true("gsetFC" %in% colnames(result))
@@ -47,133 +48,15 @@ test_that("dual_test works with basic input", {
   expect_true("q.dual" %in% colnames(result))
   expect_true("size" %in% colnames(result))
   expect_equal(nrow(result), ncol(data$G))
-})
 
-test_that("dual_test works with different fc.test methods", {
-  data <- create_stats_test_data(n_pathways = 25)  # Use more pathways
-  
-  result_cor <- dual_test(data$X, data$y, data$G, fc.test = "cor")
-  result_rankcor <- dual_test(data$X, data$y, data$G, fc.test = "rankcor")
-  result_ztest <- dual_test(data$X, data$y, data$G, fc.test = "ztest")
-  
-  expect_true(is.matrix(result_cor) || is.data.frame(result_cor))
-  expect_true(is.matrix(result_rankcor) || is.data.frame(result_rankcor))
-  expect_true(is.matrix(result_ztest) || is.data.frame(result_ztest))
-})
-
-test_that("dual_test works with precomputed gsetX", {
-  data <- create_stats_test_data()
-  gsetX <- plaid(data$X, data$G)
-  
-  result <- dual_test(data$X, data$y, data$G, gsetX = gsetX)
-  
-  expect_true(is.matrix(result) || is.data.frame(result))
-  expect_true("p.dual" %in% colnames(result))
-})
-
-test_that("dual_test works with different metap methods", {
-  data <- create_stats_test_data()
-  
-  result_stouffer <- dual_test(data$X, data$y, data$G, metap.method = "stouffer")
-  result_fisher <- dual_test(data$X, data$y, data$G, metap.method = "fisher")
-  
-  expect_true(is.matrix(result_stouffer) || is.data.frame(result_stouffer))
-  expect_true(is.matrix(result_fisher) || is.data.frame(result_fisher))
-  expect_false(identical(result_stouffer, result_fisher))
-})
-
-test_that("dual_test works with different sort.by options", {
-  data <- create_stats_test_data()
-  
-  result_pdual <- dual_test(data$X, data$y, data$G, sort.by = "p.dual")
-  result_fc <- dual_test(data$X, data$y, data$G, sort.by = "gsetFC")
-  
-  expect_true(is.matrix(result_pdual) || is.data.frame(result_pdual))
-  expect_true(is.matrix(result_fc) || is.data.frame(result_fc))
-})
-
-test_that("dual_test handles NA values in y", {
-  data <- create_stats_test_data()
-  data$y[1:2] <- NA
-  
-  result <- dual_test(data$X, data$y, data$G)
-  
-  expect_true(is.matrix(result) || is.data.frame(result))
-})
-
-test_that("dual_test works with GMT list input", {
-  data <- create_stats_test_data()
-  
-  result <- dual_test(data$X, data$y, data$gmt)
-  
-  expect_true(is.matrix(result) || is.data.frame(result))
-})
-
-test_that("dual_test throws error for invalid y", {
-  data <- create_stats_test_data()
-  data$y[1] <- 2  # Invalid value
-  
-  expect_error(dual_test(data$X, data$y, data$G))
-})
-
-test_that("dual_test throws error for invalid fc.test", {
-  data <- create_stats_test_data()
-  
-  expect_error(dual_test(data$X, data$y, data$G, fc.test = "invalid"))
-})
-
-test_that("dual_test works with precomputed pv1 and pv2", {
-  data <- create_stats_test_data()
-  pv1 <- rep(0.05, ncol(data$G))
-  names(pv1) <- colnames(data$G)
-  pv2 <- rep(0.1, ncol(data$G))
-  names(pv2) <- colnames(data$G)
-  
-  result <- dual_test(data$X, data$y, data$G, pv1 = pv1, pv2 = pv2)
-  
-  expect_true(is.matrix(result) || is.data.frame(result))
-})
-
-test_that("dual_test works with sparse matrix input", {
-  data <- create_stats_test_data(n_pathways = 25)  # Use more pathways to avoid normalization issue
-  X_sparse <- Matrix::Matrix(data$X, sparse = TRUE)
-  
-  result <- dual_test(X_sparse, data$y, data$G)
-  
-  expect_true(is.matrix(result) || is.data.frame(result))
-})
-
-# ============================================================================
-# Test: dualGSEA()
-# ============================================================================
-
-test_that("dualGSEA works with replaid methods", {
-  data <- create_stats_test_data()
-  
-  result_ssgsea <- dualGSEA(data$X, data$y, data$gmt, 
-                            fc.test = "cor", gsea.method = "replaid.ssgsea")
-  result_gsva <- dualGSEA(data$X, data$y, data$gmt, 
-                          fc.test = "cor", gsea.method = "replaid.gsva")
-  
-  expect_true(is.matrix(result_ssgsea) || is.data.frame(result_ssgsea))
-  expect_true(is.matrix(result_gsva) || is.data.frame(result_gsva))
-})
-
-test_that("dualGSEA works with precomputed matG", {
-  data <- create_stats_test_data()
-  
-  result <- dualGSEA(data$X, data$y, data$gmt, matG = data$G,
-                     fc.test = "cor", gsea.method = "replaid.ssgsea")
-  
-  expect_true(is.matrix(result) || is.data.frame(result))
 })
 
 test_that("dualGSEA handles NA values in y", {
   data <- create_stats_test_data()
   data$y[1:2] <- NA
   
-  result <- dualGSEA(data$X, data$y, data$gmt, 
-                     fc.test = "rankcor", gsea.method = "replaid.ssgsea")
+  result <- dualGSEA(data$X, data$y, gmt = data$gmt, G = data$G,
+                     fc.method = "rankcor", ss.method = "replaid.ssgsea")
   
   expect_true(is.matrix(result) || is.data.frame(result))
 })
@@ -182,20 +65,91 @@ test_that("dualGSEA throws error for invalid y", {
   data <- create_stats_test_data()
   data$y[1] <- 2
   
-  expect_error(dualGSEA(data$X, data$y, data$gmt))
+  expect_error(dualGSEA(data$X, data$y, gmt = data$gmt))
 })
 
-test_that("dualGSEA throws error for invalid fc.test", {
+test_that("dualGSEA throws error for invalid fc.method", {
   data <- create_stats_test_data()
   
-  expect_error(dualGSEA(data$X, data$y, data$gmt, fc.test = "invalid"))
+  expect_error(dualGSEA(data$X, data$y, gmt = data$gmt, fc.method = "invalid"))
 })
 
-test_that("dualGSEA throws error for invalid gsea.method", {
+test_that("dualGSEA throws error for invalid ss.method", {
   data <- create_stats_test_data()
   
-  expect_error(dualGSEA(data$X, data$y, data$gmt, 
-                        fc.test = "cor", gsea.method = "invalid"))
+  expect_error(dualGSEA(data$X, data$y, gmt = data$gmt, 
+                        fc.method = "cor", ss.method = "invalid"))
+})
+
+test_that("dualGSEA works with different fc.method methods", {
+  data <- create_stats_test_data(n_pathways = 25)  # Use more pathways
+  
+  result_cor <- dualGSEA(data$X, data$y, G = data$G, fc.method = "cor")
+  result_rankcor <- dualGSEA(data$X, data$y, G = data$G, fc.method = "rankcor")
+  result_ztest <- dualGSEA(data$X, data$y, G = data$G, fc.method = "ztest")
+  
+  expect_true(is.matrix(result_cor) || is.data.frame(result_cor))
+  expect_true(is.matrix(result_rankcor) || is.data.frame(result_rankcor))
+  expect_true(is.matrix(result_ztest) || is.data.frame(result_ztest))
+})
+
+test_that("dualGSEA works with different metap methods", {
+  data <- create_stats_test_data()
+  
+  result_stouffer <- dualGSEA(data$X, data$y, G = data$G, metap.method = "stouffer")
+  result_fisher <- dualGSEA(data$X, data$y, G = data$G, metap.method = "fisher")
+  
+  expect_true(is.matrix(result_stouffer) || is.data.frame(result_stouffer))
+  expect_true(is.matrix(result_fisher) || is.data.frame(result_fisher))
+  expect_false(identical(result_stouffer, result_fisher))
+})
+
+test_that("dualGSEA works with different sort.by options", {
+  data <- create_stats_test_data()
+  
+  result_pdual <- dualGSEA(data$X, data$y, G = data$G, sort.by = "p.dual")
+  result_fc <- dualGSEA(data$X, data$y, G = data$G, sort.by = "gsetFC")
+  
+  expect_true(is.matrix(result_pdual) || is.data.frame(result_pdual))
+  expect_true(is.matrix(result_fc) || is.data.frame(result_fc))
+})
+
+test_that("dualGSEA handles NA values in y", {
+  data <- create_stats_test_data()
+  data$y[1:2] <- NA
+  
+  result <- dualGSEA(data$X, data$y, G = data$G)
+  
+  expect_true(is.matrix(result) || is.data.frame(result))
+})
+
+test_that("dualGSEA works with GMT list input", {
+  data <- create_stats_test_data()
+  
+  result <- dualGSEA(data$X, data$y, gmt = data$gmt)
+  
+  expect_true(is.matrix(result) || is.data.frame(result))
+})
+
+test_that("dualGSEA works with precomputed pv1 and pv2", {
+  data <- create_stats_test_data()
+  pv1 <- rep(0.05, ncol(data$G))
+  names(pv1) <- colnames(data$G)
+  pv2 <- rep(0.1, ncol(data$G))
+  names(pv2) <- colnames(data$G)
+  
+  result <- dualGSEA(data$X, data$y, G = data$G, pv1 = pv1, pv2 = pv2)
+  
+  expect_true(is.matrix(result) || is.data.frame(result))
+})
+
+test_that("dualGSEA works with sparse matrix input", {
+  data <- create_stats_test_data(n_pathways = 25)  # Use more pathways to avoid normalization issue
+  X_sparse <- Matrix::Matrix(data$X, sparse = TRUE)
+  
+  result <- dualGSEA(X_sparse, data$y, G = data$G)
+  
+  expect_true(is.matrix(result) || is.data.frame(result))
 })
 
 # ============================================================================
@@ -213,16 +167,6 @@ test_that("fc_ttest works with basic input", {
   expect_true("gsetFC" %in% colnames(result))
   expect_true("pvalue" %in% colnames(result))
   expect_true("qvalue" %in% colnames(result))
-})
-
-test_that("fc_ttest works with GMT list input", {
-  data <- create_stats_test_data()
-  fc <- rowMeans(data$X[, data$y == 1]) - rowMeans(data$X[, data$y == 0])
-  names(fc) <- rownames(data$X)
-  
-  result <- fc_ttest(fc, data$gmt)
-  
-  expect_true(is.matrix(result) || is.data.frame(result))
 })
 
 test_that("fc_ttest works with different sort.by options", {
@@ -244,6 +188,42 @@ test_that("fc_ttest throws error for unnamed fc", {
   fc <- rnorm(nrow(data$X))
   
   expect_error(fc_ttest(fc, data$G))
+})
+
+# ============================================================================
+# Test: fc_ztest()
+# ============================================================================
+
+test_that("fc_ztest works with basic input", {
+  data <- create_stats_test_data()
+  fc <- rowMeans(data$X[, data$y == 1]) - rowMeans(data$X[, data$y == 0])
+  names(fc) <- rownames(data$X)
+  
+  result <- fc_ztest(fc, data$G)
+  
+  expect_true(is.list(result))
+  expect_true("z_statistic" %in% names(result))
+  expect_true("p_value" %in% names(result))
+})
+
+test_that("fc_ztest works with zmat=TRUE", {
+  data <- create_stats_test_data()
+  fc <- rowMeans(data$X[, data$y == 1]) - rowMeans(data$X[, data$y == 0])
+  names(fc) <- rownames(data$X)
+  
+  result <- fc_ztest(fc, data$G, zmat=TRUE)
+  
+  expect_true(is.list(result))
+  expect_true("zmat" %in% names(result))
+  expect_true("z_statistic" %in% names(result))  
+  expect_true("p_value" %in% names(result))
+})
+
+test_that("fc_ttest throws error for unnamed fc", {
+  data <- create_stats_test_data()
+  fc <- rnorm(nrow(data$X))
+  
+  expect_error(fc_ztest(fc, data$G))
 })
 
 # ============================================================================
@@ -608,12 +588,12 @@ test_that("cor_sparse_matrix produces finite values", {
 # Test: Integration tests
 # ============================================================================
 
-test_that("dual_test and gset_ttest produce consistent results", {
+test_that("dualGSEA and gset_ttest produce consistent results", {
   data <- create_stats_test_data()
   gsetX <- plaid(data$X, data$G)
   
-  # Run dual_test with precomputed gsetX
-  dual_result <- dual_test(data$X, data$y, data$G, gsetX = gsetX)
+  # Run dualGSEA with precomputed gsetX
+  dual_result <- dualGSEA(data$X, data$y, G = data$G)
   
   # Run gset_ttest separately
   ttest_result <- gset_ttest(gsetX, data$y)
@@ -643,10 +623,10 @@ test_that("matrix_metap with different p-value sources", {
 # Test: Edge cases and error handling
 # ============================================================================
 
-test_that("dual_test handles small sample sizes", {
+test_that("dualGSEA handles small sample sizes", {
   data <- create_stats_test_data(n_samples = 4)
   
-  result <- dual_test(data$X, data$y, data$G)
+  result <- dualGSEA(data$X, data$y, G = data$G)
   
   expect_true(is.matrix(result) || is.data.frame(result))
 })
@@ -688,13 +668,13 @@ test_that("gset.rankcor handles partial overlap", {
   expect_true(is.list(result))
 })
 
-test_that("dual_test handles unbalanced groups", {
+test_that("dualGSEA handles unbalanced groups", {
   data <- create_stats_test_data()
   data$y <- rep(0, length(data$y))
   data$y[1:3] <- 1  # Few samples in group 1
   
   # This should work but may produce warnings
-  result <- suppressWarnings(dual_test(data$X, data$y, data$G))
+  result <- suppressWarnings(dualGSEA(data$X, data$y, G = data$G))
   
   expect_true(is.matrix(result) || is.data.frame(result))
 })

@@ -9,7 +9,7 @@ INITIAL RELEASE
   * replaid methods: fast implementations of popular enrichment methods 
     (ssGSEA, GSVA, singscore, UCell, AUCell, scSE)
   
-  * dualGSEA: statistical testing for differential enrichment with dual_test
+  * dualGSEA: statistical testing for differential enrichment with dualGSEA
   
   * Full Bioconductor integration with SummarizedExperiment, 
     SingleCellExperiment, and BiocSet support
