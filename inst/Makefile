@@ -11,6 +11,9 @@ install:
 check: clean
 	R -e 'devtools::check()'
 
+biocheck: clean
+	R -e 'BiocCheck::BiocCheck(".")'
+
 clean:
 	rm -f `find . -name '.\#*' -o -name '\#*' -o -name '*~' -printf '"%p" '`
 

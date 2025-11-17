@@ -6,7 +6,7 @@
 the geneset. Requires log-expression matrix X and (sparse) geneset
 matrix matG.}
 \usage{
-gset_averageCLR(X, matG, center = TRUE, use.rank = FALSE)
+gset_averageCLR(X, matG, center = TRUE)
 }
 \arguments{
 \item{X}{Log-expression matrix with genes on rows and samples on columns}
