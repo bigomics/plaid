@@ -299,7 +299,6 @@ fc_ttest <- function(fc, G, sort.by="pvalue") {
 #' @param X Log-expression matrix with genes on rows and samples on columns
 #' @param matG Sparse gene set matrix with genes on rows and gene sets on columns
 #' @param center Logical indicating whether to center the results
-#' @param use.rank Logical indicating whether to use rank transformation
 #'
 #' @return Matrix of gene set expression scores with gene sets on rows and samples on columns.
 #'
