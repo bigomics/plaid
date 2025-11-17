@@ -278,7 +278,7 @@ fc_ttest <- function(fc, G, sort.by="pvalue") {
   pv <- mt$p[,1]
   df <- mt$mean[,1]
   qv <- p.adjust(pv, method="fdr")
-  gsetFC <- gset_averageCLR(fc, G, center = FALSE, use.rank = FALSE)[,1]
+  gsetFC <- gset_averageCLR(fc, G, center = FALSE)[,1]
   
   res <- cbind(
     gsetFC = gsetFC,
@@ -303,7 +303,7 @@ fc_ttest <- function(fc, G, sort.by="pvalue") {
 #'
 #' @return Matrix of gene set expression scores with gene sets on rows and samples on columns.
 #'
-gset_averageCLR <- function(X, matG, center = TRUE, use.rank = FALSE) {
+gset_averageCLR <- function(X, matG, center = TRUE) {
   if (NCOL(X) == 1) X <- cbind(X)
   gg <- intersect(rownames(X), rownames(matG))
   if (length(gg) == 0) {
@@ -312,10 +312,6 @@ gset_averageCLR <- function(X, matG, center = TRUE, use.rank = FALSE) {
   }
   X <- X[gg, , drop = FALSE]
   matG <- matG[gg, , drop = FALSE]
-  if (use.rank) {
-    ## not recommended for sparse matrix. will render dense.
-    X <- colSignedRanks(X) ## playbase
-  }
   sumG <- 1e-8 + Matrix::colSums(matG != 0, na.rm = TRUE)
   nG <- Matrix::colScale(1 * (matG != 0), 1 / sumG)
   gsetX <- Matrix::t(nG) %*% X 
