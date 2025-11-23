@@ -59,6 +59,18 @@ PLAID is the main single-sample gene set scoring algorithm in OmicsPlayground, o
 Bioinformatics platform at BigOmics Analytics. In OmicsPlayground, you 
 can perform PLAID without coding needs.
 
+## Media
+
+<p align="center">
+  <a href="https://bigomics.github.io/plaid/media/PLAID_infographic.png">
+    <img src="https://bigomics.github.io/plaid/media/PLAID_infographic.png" alt="PLAID Infographic" width="600"/>
+  </a>
+</p>
+
+- [PLAID Video Overview](https://bigomics.github.io/plaid/media/PLAID_Video_Overview.mp4) - Watch our video introduction to PLAID
+- [PLAID Slides](https://bigomics.github.io/plaid/media/PLAID_Slides.pdf) - Download our presentation slides
+- [PLAID Podcast](https://bigomics.github.io/plaid/media/PLAID_Podcast.m4a) - Listen to our podcast episode about PLAID
+
 ## References
 
 For more technical details please refer to our papers. Please cite us when you use
