@@ -59,25 +59,24 @@ NULL
 #' }
 #'
 #' @export
-dualGSEA <- function(X, y, gmt=NULL, G=NULL, 
+dualGSEA <- function(X, y, G, gmt=NULL, gsetX=NULL,
                      fc.method = c("fgsea","rankcor","ztest","ttest","cor")[2],
                      ss.method = c('plaid', 'replaid.ssgsea','replaid.gsva', 
                        'ssgsea','gsva')[1],
                      metap.method = c("stouffer","fisher","maxp")[1],
-                     pv1 = NULL, pv2 = NULL,
-                     sort.by='p.dual') {
+                     pv1 = NULL, pv2 = NULL, sort.by='p.dual') {
   #require(fgsea)
   if (fc.method == "fgsea" && !requireNamespace("fgsea", quietly=TRUE)) {
-    warning("The fgsea package must be installed to use this functionality")
-    return(NULL)
+    stop("The fgsea package must be installed to use this functionality")
   }
   if (ss.method %in% c("ssgsea","gsva") && !requireNamespace("GSVA", quietly=TRUE)) {
-    warning("The GSVA package must be installed to use this functionality")
-    return(NULL)
+    stop("The GSVA package must be installed to use this functionality")
   }
   if(is.null(gmt) && is.null(G)) {
-    warning("at least gmt or matrix G must be given")
-    return(NULL)
+    stop("at least gmt or matrix G must be given")
+  }
+  if(!is.null(gmt) && class(gmt)!="list") {
+    stop("gmt must be a list")
   }
   
   if(!all(unique(y) %in% c(0,1,NA))) stop("elements of y must be 0 or 1")
@@ -128,21 +127,25 @@ dualGSEA <- function(X, y, gmt=NULL, G=NULL,
   
   ## single-sample test
   message("single-sample testing using ", ss.method)
-  gsetX <- NULL
-  if(ss.method == "plaid") {
-    gsetX <- plaid::plaid(X, G)
-  }else if(ss.method == "gsva") {
-    gsvapar = GSVA::gsvaParam(X, gmt)
-    gsetX <- GSVA::gsva(gsvapar, verbose = FALSE)
-  } else if(ss.method == "ssgsea") {
-    gsvapar = GSVA::ssgseaParam(X, gmt)
-    gsetX <- GSVA::gsva(gsvapar, verbose = FALSE)
-  } else if(ss.method == "replaid.ssgsea") {
-    gsetX <- replaid.ssgsea(X, G)
-  } else if(ss.method == "replaid.gsva") {
-    gsetX <- replaid.gsva(X, G)
+
+  if(is.null(gsetX)) {
+    if(ss.method == "plaid") {
+      gsetX <- plaid::plaid(X, G)
+    }else if(ss.method == "gsva") {
+      gsvapar = GSVA::gsvaParam(X, gmt)
+      gsetX <- GSVA::gsva(gsvapar, verbose = FALSE)
+    } else if(ss.method == "ssgsea") {
+      gsvapar = GSVA::ssgseaParam(X, gmt)
+      gsetX <- GSVA::gsva(gsvapar, verbose = FALSE)
+    } else if(ss.method == "replaid.ssgsea") {
+      gsetX <- replaid.ssgsea(X, G)
+    } else if(ss.method == "replaid.gsva") {
+      gsetX <- replaid.gsva(X, G)
+    } else {
+      stop("Error: invalid ss.method: ",ss.method)
+    }
   } else {
-    stop("Error: invalid ss.method: ",ss.method)
+    gsetX <- gsetX[colnames(G),]
   }
 
   gg <- intersect(rownames(G),rownames(X))
