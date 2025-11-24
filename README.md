@@ -56,7 +56,7 @@ For detailed usage examples and tutorials, please see our vignettes:
 - [Comparing PLAID with other methods](https://bigomics.github.io/plaid/articles/02_compare-vignette.html)
 
 PLAID is the main single-sample gene set scoring algorithm in OmicsPlayground, our 
-Bioinformatics platform at BigOmics Analytics. In OmicsPlayground, you 
+Bioinformatics platform at [BigOmics](https://bigomics.ch). In OmicsPlayground, you 
 can perform PLAID without coding needs.
 
 ## References
