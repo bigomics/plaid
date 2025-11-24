@@ -14,8 +14,6 @@ gset_averageCLR(X, matG, center = TRUE)
 \item{matG}{Sparse gene set matrix with genes on rows and gene sets on columns}
 
 \item{center}{Logical indicating whether to center the results}
-
-\item{use.rank}{Logical indicating whether to use rank transformation}
 }
 \value{
 Matrix of gene set expression scores with gene sets on rows and samples on columns.

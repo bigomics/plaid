@@ -14,6 +14,9 @@ check: clean
 biocheck: clean
 	R -e 'BiocCheck::BiocCheck(".")'
 
+test:
+	R -e "devtools::test()"
+
 clean:
 	rm -f `find . -name '.\#*' -o -name '\#*' -o -name '*~' -printf '"%p" '`
 

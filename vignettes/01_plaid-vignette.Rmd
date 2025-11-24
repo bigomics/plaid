@@ -13,7 +13,8 @@ vignette: >
 ```{r, include = FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE,
-  comment = "#>"
+  comment = "#>",
+  fig.align = "center"
 )
 ```
 
@@ -129,7 +130,7 @@ million of cells this would create a large 10.000 x 1.000.000 dense
 matrix which requires about 75GB of memory.
 
 
-## Performing a differential expression test
+## Differential expression testing using dualGSEA
 
 Once we have the gene sets scores we can use these scores for
 statistical analysis. We could compute the differential gene set
@@ -139,18 +140,19 @@ on the score matrix `gsetX`.
 Another way to test whether a gene set is statistically significant
 would be to test whether the fold-change of the genes in the gene sets
 are statistically different than zero. That is, we can perform a one
-sample t-test on the logFC of the genes of each gene sets and test
+sample z-test on the logFC of the genes of each gene sets and test
 whether they are significantly different from zero. The logFC is
 computed from the original (log) expression matrix `X` and group
 vector `y`.
 
 
-The function `dual_test()` does both tests: the one-sample t-test on
-the logFC  and the two-group t-test on the gene set matrix `gsetX`.
+The function `dualGSEA()` does both tests: the one-sample z-test on
+the logFC  and the two-group t-test on the gene set matrix `gsetX`. 
+Dual testing has been suggested by Bull et al. (Sci Rep., 2024)
 
 ```{r}
 y <- 1*(celltype == "B")
-res <- dual_test(X, y, matG, gsetX=gsetX)
+res <- dualGSEA(X, y, G=matG)
 ```
 
 The top significant genesets can be shown with
@@ -168,14 +170,24 @@ geneset scores `gsetX`. The two p-values are then combined using
 Stouffer's method in the column 'p.dual' and adjusted for multiple
 testing in column `q.dual`.
 
-We can also show the results as a volcano plot:
+The left figure below plots the fold-change enrichment `p.fc` vs. 
+single-sample enrichment `p.ss`. The right figure shows the volcano plot
+`p.dual` vs. `gsetFC`:
 
-```{r}
+```{r, fig.height=6, fig.width=12, fig.fullwidth=TRUE}
 fc <- res[,"gsetFC"]
 pv <- res[,"p.dual"]
-plot( fc, -log10(pv), xlab="logFC", ylab="-log10p", pch=19)
+p1 <- res[,"p.fc"]
+p2 <- res[,"p.ss"]
+ii <- head(order(pv))
+par(mfrow=c(1,2))
+plot( -log10(p1), -log10(p2),
+  xlab="FC enrichment (-log10p)",
+  ylab="single-sample enrichment (-log10p)", pch=19)
+text( -log10(p1[ii]), -log10(p2[ii]), rownames(res)[ii],pos=2)
+plot( fc, -log10(pv), xlab="gsetFC", ylab="-log10p", pch=19)
 abline(h=0, v=0, lty=2)
-text( fc[1:5], -log10(pv[1:5]), rownames(res)[1:5],pos=2)
+text( fc[ii], -log10(pv[ii]), rownames(res)[ii],pos=2)
 ```
 
 # Replicating ssGSEA, singscore and scSE
