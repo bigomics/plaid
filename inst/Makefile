@@ -14,6 +14,15 @@ check: clean
 biocheck: clean
 	R -e 'BiocCheck::BiocCheck(".")'
 
+site0:
+	R -e 'pkgdown::build_site_github_pages()'
+
+site:
+	R -e 'pkgdown::build_site()'
+
+site.init:
+	R -e 'pkgdown::init_site()'
+
 clean:
 	rm -f `find . -name '.\#*' -o -name '\#*' -o -name '*~' -printf '"%p" '`
 
