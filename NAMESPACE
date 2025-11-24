@@ -2,7 +2,6 @@
 
 export(colranks)
 export(dualGSEA)
-export(dual_test)
 export(gmt2mat)
 export(gset.rankcor)
 export(mat2gmt)

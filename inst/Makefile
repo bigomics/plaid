@@ -23,6 +23,9 @@ site:
 site.init:
 	R -e 'pkgdown::init_site()'
 
+test:
+	R -e "devtools::test()"
+
 clean:
 	rm -f `find . -name '.\#*' -o -name '\#*' -o -name '*~' -printf '"%p" '`
 

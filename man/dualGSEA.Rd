@@ -9,10 +9,14 @@ be much faster than original using fgsea + GSVA::ssGSEA.}
 dualGSEA(
   X,
   y,
-  gmt,
-  matG = NULL,
-  fc.test = "fgsea",
-  gsea.method = "replaid.ssgsea"
+  gmt = NULL,
+  G = NULL,
+  fc.method = c("fgsea", "rankcor", "ztest", "ttest", "cor")[2],
+  ss.method = c("plaid", "replaid.ssgsea", "replaid.gsva", "ssgsea", "gsva")[1],
+  metap.method = c("stouffer", "fisher", "maxp")[1],
+  pv1 = NULL,
+  pv2 = NULL,
+  sort.by = "p.dual"
 )
 }
 \arguments{
@@ -22,15 +26,26 @@ dualGSEA(
 
 \item{gmt}{List of gene sets in GMT format}
 
-\item{matG}{Optional sparse matrix of gene sets (will be computed from gmt if NULL)}
+\item{G}{Sparse matrix of gene sets. Non-zero entry indicates
+gene/feature is part of gene sets. Features on rows, gene sets on
+columns.}
 
-\item{fc.test}{Method for fold change testing ("fgsea", "ztest", "rankcor", "cor")}
+\item{fc.method}{Method for fold change testing ("fgsea", "ztest", "ttest", "rankcor", "cor")}
 
-\item{gsea.method}{Method for single-sample enrichment ("replaid.ssgsea", "replaid.gsva", "ssgsea", "gsva")}
+\item{ss.method}{Method for single-sample enrichment ("plaid", "replaid.ssgsea", "replaid.gsva", "ssgsea", "gsva")}
+
+\item{metap.method}{Method for combining p-values ("stouffer", "fisher" or "maxp"). Default "stouffer".}
+
+\item{pv1}{Pre-computed p-values from fold change test. If NULL, will be computed based on fc.test.}
+
+\item{pv2}{Pre-computed p-values from single sample test. If NULL, will be computed using gset_ttest.}
+
+\item{sort.by}{Column name to sort results by ("p.dual", "gsetFC", "p.fc", "p.ss"). Default "p.dual".}
 }
 \value{
-Data frame with results from dual testing including fold changes,
-p-values, and combined statistical measures.
+Data frame with columns: gsetFC (gene set fold change), size (gene set size),
+p.fc (p-value from fold change test), p.ss (p-value from single sample test),
+p.dual (combined p-value), and q.dual (FDR-adjusted combined p-value).
 }
 \description{
 Reimplementation of dualGSEA (Bull et al., 2024) but defaults with
@@ -55,13 +70,13 @@ gmt <- list(
 )
 
 # Perform dualGSEA with correlation test (fast method)
-results_cor <- dualGSEA(X, y, gmt, fc.test = "cor", gsea.method = "replaid.gsva")
+results_cor <- dualGSEA(X, y, gmt, fc.method = "cor", ss.method = "replaid.gsva")
 print(head(results_cor))
 
 \donttest{
 # Perform dualGSEA with fgsea (requires fgsea package)
 if (requireNamespace("fgsea", quietly = TRUE)) {
-  results <- dualGSEA(X, y, gmt, fc.test = "fgsea", gsea.method = "replaid.ssgsea")
+  results <- dualGSEA(X, y, gmt, fc.method = "fgsea", ss.method = "replaid.ssgsea")
   print(head(results))
 }
 }
