@@ -31,6 +31,8 @@ use_package("BiocStyle", type = "Suggests")
 
 use_readme_md()
 
+use_logo("logo.png")
+
 use_build_ignore(c("dev"))
 
 check()
