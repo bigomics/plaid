@@ -1,7 +1,7 @@
 bibentry(
   bibtype  = "Article",
-  title    = "PLAID: ultrafast single-sample gene set enrichment scoringPLAID: ultrafast single-sample gene set enrichment scoring",
-  author   = "Zito, Antonino and Escribà Montagut, Xavier and Scorici, Gabriela and Martinelli, Axel and Akhmedov, Murodzhon and Kwee, Ivo",
+  title    = "PLAID: ultrafast single-sample gene set enrichment scoring",
+  author   = "Zito, Antonino and Escrib\u00e0 Montagut, Xavier and Scorici, Gabriela and Martinelli, Axel and Akhmedov, Murodzhon and Kwee, Ivo",
   journal  = "Bioinformatics",
   year     = "2025",
   doi      = "10.1093/bioinformatics/btaf621"
