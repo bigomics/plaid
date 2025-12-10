@@ -21,7 +21,7 @@ dualGSEA(
 )
 }
 \arguments{
-\item{X}{Expression matrix with genes on rows and samples on columns}
+\item{X}{Expression matrix with genes on rows and samples ont columns}
 
 \item{y}{Binary vector (0/1) indicating group membership}
 
@@ -30,6 +30,11 @@ gene/feature is part of gene sets. Features on rows, gene sets on
 columns.}
 
 \item{gmt}{List of gene sets in GMT format}
+
+\item{gsetX}{Optional pre-computed matrix of gene set enrichment scores with
+gene sets on rows and samples on columns. If NULL (default), scores will be
+computed using the method specified by \code{ss.method}. Providing pre-computed
+scores improves efficiency when running multiple analyses.}
 
 \item{fc.method}{Method for fold change testing ("fgsea", "ztest", "ttest", "rankcor", "cor")}
 

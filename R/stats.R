@@ -19,6 +19,10 @@ NULL
 #' @param G Sparse matrix of gene sets. Non-zero entry indicates
 #'   gene/feature is part of gene sets. Features on rows, gene sets on
 #'   columns.
+#' @param gsetX Optional pre-computed matrix of gene set enrichment scores with 
+#'   gene sets on rows and samples on columns. If NULL (default), scores will be 
+#'   computed using the method specified by `ss.method`. Providing pre-computed 
+#'   scores improves efficiency when running multiple analyses.
 #' @param fc.method Method for fold change testing ("fgsea", "ztest", "ttest", "rankcor", "cor")
 #' @param ss.method Method for single-sample enrichment ("plaid", "replaid.ssgsea", "replaid.gsva", "ssgsea", "gsva")
 #' @param pv1 Pre-computed p-values from fold change test. If NULL, will be computed based on fc.test.
