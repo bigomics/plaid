@@ -33,6 +33,7 @@ Imports:
     GSVA,
     fgsea,
     SummarizedExperiment,
-    SingleCellExperiment,
-    BiocSet
+    BiocSet,
+    stats,
+    utils
 VignetteBuilder: knitr
