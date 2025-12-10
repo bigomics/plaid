@@ -7,6 +7,7 @@
 ^Meta$
 ^doc$
 ^experiments$
+^plaid.BiocCheck$
 ^_pkgdown\.yml$
 ^docs$
 ^pkgdown$
