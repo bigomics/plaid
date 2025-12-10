@@ -128,7 +128,7 @@ plaid <- function(X, matG, stats=c("mean","sum"), chunk=NULL, normalize=TRUE,
   
   gg <- intersect(rownames(X), rownames(matG))
   if (length(gg) == 0) {
-    message("[plaid] ERROR. No overlapping features.")
+    message("[plaid] No overlapping features.")
     return(NULL)
   }
 
@@ -651,7 +651,7 @@ replaid.gsva <- function(X, matG, tau = 0, rowtf = c("z", "ecdf")[1], assay="log
     ## this implements original ECDF idea
     zX <- t(apply(X,1,function(x) ecdf(x)(x))) 
   } else {
-    stop("Error: unknown row transform",rowtf)
+    stop("unknown row transform",rowtf)
   }
 
   rX <- colranks(zX, signed = TRUE, ties.method = "average")

@@ -147,7 +147,7 @@ dualGSEA <- function(X, y, G, gmt=NULL, gsetX=NULL,
     } else if(ss.method == "replaid.gsva") {
       gsetX <- replaid.gsva(X, G)
     } else {
-      stop("Error: invalid ss.method: ",ss.method)
+      stop("invalid ss.method: ",ss.method)
     }
   } else {
     gsetX <- gsetX[colnames(G),]
@@ -297,7 +297,7 @@ gset_averageCLR <- function(X, matG, center = TRUE) {
   if (NCOL(X) == 1) X <- cbind(X)
   gg <- intersect(rownames(X), rownames(matG))
   if (length(gg) == 0) {
-    message("[gset.averageCLR] ERROR. no overlapping features")
+    message("[gset.averageCLR] no overlapping features")
     return(NULL)
   }
   X <- X[gg, , drop = FALSE]
@@ -427,8 +427,8 @@ matrix_metap <- function(plist, method='stouffer') {
 #' @export
 gset.rankcor <- function(rnk, gset, compute.p = FALSE, use.rank = TRUE) {
   if (ncol(gset) == 0 || NCOL(rnk) == 0) {
-    if (ncol(gset) == 0) message("ERROR. gset has zero columns")
-    if (NCOL(rnk) == 0) message("ERROR. rnk has zero columns")
+    if (ncol(gset) == 0) message("gset has zero columns")
+    if (NCOL(rnk) == 0) message("rnk has zero columns")
     return(NULL)
   }
 
