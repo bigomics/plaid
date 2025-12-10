@@ -1,4 +1,4 @@
-# PLAID: ultrafast single-sample gene set enrichment  <img src='man/figures/logo.png' align="right" width="150"/>
+# PLAID: ultrafast single-sample gene set enrichment  <a href="https://bigomics.github.io/plaid/"><img src="man/figures/logo.png" align="right" height="138" alt="plaid website" /></a>
 
 [![codecov](https://codecov.io/github/bigomics/plaid/graph/badge.svg?token=66J6W41C0G)](https://codecov.io/github/bigomics/plaid)
 
@@ -56,7 +56,7 @@ For detailed usage examples and tutorials, please see our vignettes:
 - [Comparing PLAID with other methods](https://bigomics.github.io/plaid/articles/02_compare-vignette.html)
 
 PLAID is the main single-sample gene set scoring algorithm in OmicsPlayground, our 
-Bioinformatics platform at BigOmics Analytics. In OmicsPlayground, you 
+Bioinformatics platform at [BigOmics](https://bigomics.ch). In OmicsPlayground, you 
 can perform PLAID without coding needs.
 
 ## Media

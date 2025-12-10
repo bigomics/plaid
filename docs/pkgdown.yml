@@ -4,4 +4,7 @@ pkgdown_sha: ~
 articles:
   01_plaid-vignette: 01_plaid-vignette.html
   02_compare-vignette: 02_compare-vignette.html
-last_built: 2025-11-24T12:55Z
+last_built: 2025-12-10T09:13Z
+urls:
+  reference: https://bigomics.github.io/plaid/reference
+  article: https://bigomics.github.io/plaid/articles

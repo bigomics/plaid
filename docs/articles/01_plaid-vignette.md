@@ -124,7 +124,7 @@ large. If you would want to compute the score of 10.000 gene sets on a
 million of cells this would create a large 10.000 x 1.000.000 dense
 matrix which requires about 75GB of memory.
 
-### Performing a differential expression test
+### Differential expression testing using dualGSEA
 
 Once we have the gene sets scores we can use these scores for
 statistical analysis. We could compute the differential gene set
@@ -134,19 +134,22 @@ on the score matrix `gsetX`.
 Another way to test whether a gene set is statistically significant
 would be to test whether the fold-change of the genes in the gene sets
 are statistically different than zero. That is, we can perform a one
-sample t-test on the logFC of the genes of each gene sets and test
+sample z-test on the logFC of the genes of each gene sets and test
 whether they are significantly different from zero. The logFC is
 computed from the original (log) expression matrix `X` and group vector
 `y`.
 
 The function
-[`dual_test()`](https://bigomics.github.io/plaid/reference/dual_test.md)
-does both tests: the one-sample t-test on the logFC and the two-group
-t-test on the gene set matrix `gsetX`.
+[`dualGSEA()`](https://bigomics.github.io/plaid/reference/dualGSEA.md)
+does both tests: the one-sample z-test on the logFC and the two-group
+t-test on the gene set matrix `gsetX`. Dual testing has been suggested
+by Bull et al. (Sci Rep., 2024)
 
 ``` r
 y <- 1*(celltype == "B")
-res <- dual_test(X, y, matG, gsetX=gsetX)
+res <- dualGSEA(X, y, G=matG)
+#> FC testing using rankcor
+#> single-sample testing using plaid
 ```
 
 The top significant genesets can be shown with
@@ -154,20 +157,20 @@ The top significant genesets can be shown with
 ``` r
 res <- res[order(res[,"p.dual"]),] 
 head(res)
-#>                                         gsetFC size         p.fc         p.ss
-#> HALLMARK_INTERFERON_GAMMA_RESPONSE  0.09923298  155 5.614052e-06 1.067381e-05
-#> HALLMARK_ALLOGRAFT_REJECTION        0.08322962  134 5.162037e-04 1.311508e-05
-#> HALLMARK_P53_PATHWAY               -0.04702449  130 1.378624e-02 2.900893e-04
-#> HALLMARK_INTERFERON_ALPHA_RESPONSE  0.09705679   78 1.653989e-03 9.406415e-03
-#> HALLMARK_ANGIOGENESIS              -0.14291289    4 5.680258e-02 6.098317e-02
-#> HALLMARK_IL2_STAT5_SIGNALING        0.02905553  107 3.781802e-01 3.704478e-03
+#>                                         gsetFC size       p.fc         p.ss
+#> HALLMARK_INTERFERON_GAMMA_RESPONSE  0.09923298  155 0.01254942 1.067381e-05
+#> HALLMARK_P53_PATHWAY               -0.04702449  130 0.01642868 2.900893e-04
+#> HALLMARK_ALLOGRAFT_REJECTION        0.08322962  134 0.28923587 1.311508e-05
+#> HALLMARK_INTERFERON_ALPHA_RESPONSE  0.09705679   78 0.01820425 9.406415e-03
+#> HALLMARK_PEROXISOME                 0.04304130   57 0.02263533 3.818109e-02
+#> HALLMARK_HYPOXIA                   -0.03466136   96 0.02063956 5.356212e-02
 #>                                          p.dual       q.dual
-#> HALLMARK_INTERFERON_GAMMA_RESPONSE 4.948006e-10 2.474003e-08
-#> HALLMARK_ALLOGRAFT_REJECTION       6.014977e-08 1.503744e-06
-#> HALLMARK_P53_PATHWAY               3.290696e-05 5.484494e-04
-#> HALLMARK_INTERFERON_ALPHA_RESPONSE 9.262597e-05 1.157825e-03
-#> HALLMARK_ANGIOGENESIS              1.347047e-02 1.157300e-01
-#> HALLMARK_IL2_STAT5_SIGNALING       1.730306e-02 1.157300e-01
+#> HALLMARK_INTERFERON_GAMMA_RESPONSE 2.224153e-06 0.0001112076
+#> HALLMARK_P53_PATHWAY               4.043737e-05 0.0010109343
+#> HALLMARK_ALLOGRAFT_REJECTION       3.819973e-04 0.0063666222
+#> HALLMARK_INTERFERON_ALPHA_RESPONSE 8.428564e-04 0.0105357051
+#> HALLMARK_PEROXISOME                3.805555e-03 0.0380555487
+#> HALLMARK_HYPOXIA                   4.906745e-03 0.0408895398
 ```
 
 The column `gsetFC` corresponds to the difference in gene set score and
@@ -178,14 +181,24 @@ column ’p.ss’ corresponds to the two-group t-test on the geneset scores
 the column ‘p.dual’ and adjusted for multiple testing in column
 `q.dual`.
 
-We can also show the results as a volcano plot:
+The left figure below plots the fold-change enrichment `p.fc` vs. 
+single-sample enrichment `p.ss`. The right figure shows the volcano plot
+`p.dual` vs. `gsetFC`:
 
 ``` r
 fc <- res[,"gsetFC"]
 pv <- res[,"p.dual"]
-plot( fc, -log10(pv), xlab="logFC", ylab="-log10p", pch=19)
+p1 <- res[,"p.fc"]
+p2 <- res[,"p.ss"]
+ii <- head(order(pv))
+par(mfrow=c(1,2))
+plot( -log10(p1), -log10(p2),
+  xlab="FC enrichment (-log10p)",
+  ylab="single-sample enrichment (-log10p)", pch=19)
+text( -log10(p1[ii]), -log10(p2[ii]), rownames(res)[ii],pos=2)
+plot( fc, -log10(pv), xlab="gsetFC", ylab="-log10p", pch=19)
 abline(h=0, v=0, lty=2)
-text( fc[1:5], -log10(pv[1:5]), rownames(res)[1:5],pos=2)
+text( fc[ii], -log10(pv[ii]), rownames(res)[ii],pos=2)
 ```
 
 ![](01_plaid-vignette_files/figure-html/unnamed-chunk-7-1.png)

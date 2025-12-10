@@ -10,10 +10,15 @@ much faster than original using fgsea + GSVA::ssGSEA.
 dualGSEA(
   X,
   y,
-  gmt,
-  matG = NULL,
-  fc.test = "fgsea",
-  gsea.method = "replaid.ssgsea"
+  G,
+  gmt = NULL,
+  gsetX = NULL,
+  fc.method = c("fgsea", "rankcor", "ztest", "ttest", "cor")[2],
+  ss.method = c("plaid", "replaid.ssgsea", "replaid.gsva", "ssgsea", "gsva")[1],
+  metap.method = c("stouffer", "fisher", "maxp")[1],
+  pv1 = NULL,
+  pv2 = NULL,
+  sort.by = "p.dual"
 )
 ```
 
@@ -27,28 +32,51 @@ dualGSEA(
 
   Binary vector (0/1) indicating group membership
 
+- G:
+
+  Sparse matrix of gene sets. Non-zero entry indicates gene/feature is
+  part of gene sets. Features on rows, gene sets on columns.
+
 - gmt:
 
   List of gene sets in GMT format
 
-- matG:
+- fc.method:
 
-  Optional sparse matrix of gene sets (will be computed from gmt if
-  NULL)
+  Method for fold change testing ("fgsea", "ztest", "ttest", "rankcor",
+  "cor")
 
-- fc.test:
+- ss.method:
 
-  Method for fold change testing ("fgsea", "ztest", "rankcor", "cor")
+  Method for single-sample enrichment ("plaid", "replaid.ssgsea",
+  "replaid.gsva", "ssgsea", "gsva")
 
-- gsea.method:
+- metap.method:
 
-  Method for single-sample enrichment ("replaid.ssgsea", "replaid.gsva",
-  "ssgsea", "gsva")
+  Method for combining p-values ("stouffer", "fisher" or "maxp").
+  Default "stouffer".
+
+- pv1:
+
+  Pre-computed p-values from fold change test. If NULL, will be computed
+  based on fc.test.
+
+- pv2:
+
+  Pre-computed p-values from single sample test. If NULL, will be
+  computed using gset_ttest.
+
+- sort.by:
+
+  Column name to sort results by ("p.dual", "gsetFC", "p.fc", "p.ss").
+  Default "p.dual".
 
 ## Value
 
-Data frame with results from dual testing including fold changes,
-p-values, and combined statistical measures.
+Data frame with columns: gsetFC (gene set fold change), size (gene set
+size), p.fc (p-value from fold change test), p.ss (p-value from single
+sample test), p.dual (combined p-value), and q.dual (FDR-adjusted
+combined p-value).
 
 ## Examples
 
@@ -70,29 +98,17 @@ gmt <- list(
 )
 
 # Perform dualGSEA with correlation test (fast method)
-results_cor <- dualGSEA(X, y, gmt, fc.test = "cor", gsea.method = "replaid.gsva")
-#> fc.test using cor
-#> computing matG
-#> single-sample testing using replaid.gsva
+results_cor <- dualGSEA(X, y, gmt, fc.method = "cor", ss.method = "replaid.gsva")
+#> Error in h(simpleError(msg, call)): error in evaluating the argument 'x' in selecting a method for function 'which': 'list' object cannot be coerced to type 'double'
 print(head(results_cor))
-#>          gsetFC size p.fc p.ss p.dual q.dual
-#> Pathway2      0   21    1    1      1      1
-#> Pathway3      0   21    1    1      1      1
-#> Pathway1      0   20    1    1      1      1
+#> Error: object 'results_cor' not found
 
 # \donttest{
 # Perform dualGSEA with fgsea (requires fgsea package)
 if (requireNamespace("fgsea", quietly = TRUE)) {
-  results <- dualGSEA(X, y, gmt, fc.test = "fgsea", gsea.method = "replaid.ssgsea")
+  results <- dualGSEA(X, y, gmt, fc.method = "fgsea", ss.method = "replaid.ssgsea")
   print(head(results))
 }
-#> fc.test using fgsea
-#> Warning: For some of the pathways the P-values were likely overestimated. For such pathways log2err is set to NA.
-#> computing matG
-#> single-sample testing using replaid.ssgsea
-#>          gsetFC size        p.fc p.ss p.dual q.dual
-#> Pathway2      0   21 0.005633866    1      1      1
-#> Pathway3      0   21 0.005633866    1      1      1
-#> Pathway1      0   20 0.005391312    1      1      1
+#> Error in h(simpleError(msg, call)): error in evaluating the argument 'x' in selecting a method for function 'which': 'list' object cannot be coerced to type 'double'
 # }
 ```

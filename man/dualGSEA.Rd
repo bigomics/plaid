@@ -9,8 +9,9 @@ be much faster than original using fgsea + GSVA::ssGSEA.}
 dualGSEA(
   X,
   y,
+  G,
   gmt = NULL,
-  G = NULL,
+  gsetX = NULL,
   fc.method = c("fgsea", "rankcor", "ztest", "ttest", "cor")[2],
   ss.method = c("plaid", "replaid.ssgsea", "replaid.gsva", "ssgsea", "gsva")[1],
   metap.method = c("stouffer", "fisher", "maxp")[1],
@@ -24,11 +25,11 @@ dualGSEA(
 
 \item{y}{Binary vector (0/1) indicating group membership}
 
-\item{gmt}{List of gene sets in GMT format}
-
 \item{G}{Sparse matrix of gene sets. Non-zero entry indicates
 gene/feature is part of gene sets. Features on rows, gene sets on
 columns.}
+
+\item{gmt}{List of gene sets in GMT format}
 
 \item{fc.method}{Method for fold change testing ("fgsea", "ztest", "ttest", "rankcor", "cor")}
 

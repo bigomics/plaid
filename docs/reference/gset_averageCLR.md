@@ -24,10 +24,6 @@ gset_averageCLR(X, matG, center = TRUE)
 
   Logical indicating whether to center the results
 
-- use.rank:
-
-  Logical indicating whether to use rank transformation
-
 ## Value
 
 Matrix of gene set expression scores with gene sets on rows and samples

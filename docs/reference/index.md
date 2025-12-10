@@ -12,10 +12,8 @@
   : Reimplementation of dualGSEA (Bull et al., 2024) but defaults with
   replaid backend. For the preranked test we still use fgsea. Should be
   much faster than original using fgsea + GSVA::ssGSEA.
-- [`dual_test()`](https://bigomics.github.io/plaid/reference/dual_test.md)
-  : Statistical testing of differentially enrichment
 - [`fc_ttest()`](https://bigomics.github.io/plaid/reference/fc_ttest.md)
-  : Statistical testing of differentially enrichment
+  : T-test statistical testing of differentially enrichment
 - [`fc_ztest()`](https://bigomics.github.io/plaid/reference/fc_ztest.md)
   : Z-test statistical testing of differentially enrichment
 - [`gmt2mat()`](https://bigomics.github.io/plaid/reference/gmt2mat.md) :

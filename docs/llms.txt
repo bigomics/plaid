@@ -63,8 +63,9 @@ For detailed usage examples and tutorials, please see our vignettes:
   methods](https://bigomics.github.io/plaid/articles/02_compare-vignette.html)
 
 PLAID is the main single-sample gene set scoring algorithm in
-OmicsPlayground, our Bioinformatics platform at BigOmics Analytics. In
-OmicsPlayground, you can perform PLAID without coding needs.
+OmicsPlayground, our Bioinformatics platform at
+[BigOmics](https://bigomics.ch). In OmicsPlayground, you can perform
+PLAID without coding needs.
 
 ## Media
 
@@ -117,10 +118,8 @@ social media.
   : Reimplementation of dualGSEA (Bull et al., 2024) but defaults with
   replaid backend. For the preranked test we still use fgsea. Should be
   much faster than original using fgsea + GSVA::ssGSEA.
-- [`dual_test()`](https://bigomics.github.io/plaid/reference/dual_test.md)
-  : Statistical testing of differentially enrichment
 - [`fc_ttest()`](https://bigomics.github.io/plaid/reference/fc_ttest.md)
-  : Statistical testing of differentially enrichment
+  : T-test statistical testing of differentially enrichment
 - [`fc_ztest()`](https://bigomics.github.io/plaid/reference/fc_ztest.md)
   : Z-test statistical testing of differentially enrichment
 - [`gmt2mat()`](https://bigomics.github.io/plaid/reference/gmt2mat.md) :
@@ -174,7 +173,3 @@ social media.
   PLAID](https://bigomics.github.io/plaid/articles/01_plaid-vignette.md):
 - [Comparing PLAID with other
   methods](https://bigomics.github.io/plaid/articles/02_compare-vignette.md):
-- [PLAID: comparison with other
-  methods](https://bigomics.github.io/plaid/articles/compare-vignette.md):
-- [PLAID: ultrafast single-sample enrichment
-  scoring](https://bigomics.github.io/plaid/articles/plaid-vignette.md):

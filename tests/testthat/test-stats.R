@@ -126,7 +126,7 @@ test_that("dualGSEA handles NA values in y", {
 test_that("dualGSEA works with GMT list input", {
   data <- create_stats_test_data()
   
-  result <- dualGSEA(data$X, data$y, gmt = data$gmt)
+  result <- dualGSEA(data$X, data$y, gmt = data$gmt, G = data$G)
   
   expect_true(is.matrix(result) || is.data.frame(result))
 })

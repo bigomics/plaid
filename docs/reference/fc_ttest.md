@@ -1,4 +1,4 @@
-# Statistical testing of differentially enrichment
+# T-test statistical testing of differentially enrichment
 
 This function performs statistical testing for differential enrichment
 using plaid
