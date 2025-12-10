@@ -6,6 +6,7 @@
 #' @importFrom Matrix rowMeans colSums crossprod t colScale
 #' @importFrom Rfast ttests
 #' @importFrom qlcMatrix corSparse
+#' @importFrom methods is
 NULL
 
 #' Reimplementation of dualGSEA (Bull et al., 2024) but defaults with
@@ -75,7 +76,7 @@ dualGSEA <- function(X, y, G, gmt=NULL, gsetX=NULL,
   if(is.null(gmt) && is.null(G)) {
     stop("at least gmt or matrix G must be given")
   }
-  if(!is.null(gmt) && class(gmt)!="list") {
+  if(!is.null(gmt) && !is(gmt, "list")) {
     stop("gmt must be a list")
   }
   
@@ -239,6 +240,8 @@ fc_ttest <- function(fc, G, sort.by="pvalue") {
 #'
 #' This function performs statistical testing for differential
 #' enrichment using plaid
+#' 
+#' @importFrom stats var
 #'
 #' @param fc Vector of logFC values
 #' @param G Sparse matrix of gene sets. Non-zero entry indicates
