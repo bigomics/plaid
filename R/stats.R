@@ -12,7 +12,7 @@ NULL
 #' replaid backend. For the preranked test we still use fgsea. Should
 #' be much faster than original using fgsea + GSVA::ssGSEA.
 #'
-#' @param X Expression matrix with genes on rows and samples on columns
+#' @param X Expression matrix with genes on rows and samples ont columns
 #' @param y Binary vector (0/1) indicating group membership
 #' @param gmt List of gene sets in GMT format
 #' @param G Sparse matrix of gene sets. Non-zero entry indicates
@@ -132,10 +132,10 @@ dualGSEA <- function(X, y, G, gmt=NULL, gsetX=NULL,
     if(ss.method == "plaid") {
       gsetX <- plaid::plaid(X, G)
     }else if(ss.method == "gsva") {
-      gsvapar = GSVA::gsvaParam(X, gmt)
+      gsvapar <- GSVA::gsvaParam(X, gmt)
       gsetX <- GSVA::gsva(gsvapar, verbose = FALSE)
     } else if(ss.method == "ssgsea") {
-      gsvapar = GSVA::ssgseaParam(X, gmt)
+      gsvapar <- GSVA::ssgseaParam(X, gmt)
       gsetX <- GSVA::gsva(gsvapar, verbose = FALSE)
     } else if(ss.method == "replaid.ssgsea") {
       gsetX <- replaid.ssgsea(X, G)
@@ -267,7 +267,7 @@ fc_ztest <- function(fc, G, zmat=FALSE, alpha=0.5) {
   if(zmat) {
     zmat <- (Matrix::t(gfc) / estim_sd)
   } else {
-    zmat = NULL
+    zmat <- NULL
   }
   list(
     z_statistic = z_statistic[,1],
