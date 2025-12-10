@@ -148,8 +148,8 @@ plaid <- function(X, matG, stats=c("mean","sum"), chunk=NULL, normalize=TRUE,
   if(normalize) {
     if(nrow(gsetX) < 20) {
       ## for few genesets, median-norm is not good
-      normfactor <- log2(colSums(2**X,na.rm=TRUE))
-      normfactor <- normfactor + mean(normfactor)
+      normfactor <- Matrix::colMeans(gsetX,na.rm=TRUE)
+      normfactor <- normfactor - mean(normfactor)
       gsetX <- sweep(gsetX, 2, normfactor, '-') 
     } else {
       gsetX <- normalize_medians(gsetX)
