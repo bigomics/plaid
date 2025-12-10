@@ -76,13 +76,13 @@ gmt <- list(
 )
 
 # Perform dualGSEA with correlation test (fast method)
-results_cor <- dualGSEA(X, y, gmt, fc.method = "cor", ss.method = "replaid.gsva")
+results_cor <- dualGSEA(X, y, G = NULL, gmt = gmt, fc.method = "cor", ss.method = "replaid.gsva")
 print(head(results_cor))
 
 \donttest{
 # Perform dualGSEA with fgsea (requires fgsea package)
 if (requireNamespace("fgsea", quietly = TRUE)) {
-  results <- dualGSEA(X, y, gmt, fc.method = "fgsea", ss.method = "replaid.ssgsea")
+  results <- dualGSEA(X, y, G = NULL, gmt = gmt, fc.method = "fgsea", ss.method = "replaid.ssgsea")
   print(head(results))
 }
 }
