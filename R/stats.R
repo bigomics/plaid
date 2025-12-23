@@ -4,6 +4,7 @@
 
 #' @importFrom stats p.adjust pt pchisq qnorm pnorm
 #' @importFrom Matrix rowMeans colSums crossprod t colScale
+#' @importFrom MatrixGenerics rowSds colVars colRanks
 #' @importFrom Rfast ttests
 #' @importFrom qlcMatrix corSparse
 #' @importFrom methods is
@@ -103,12 +104,9 @@ dualGSEA <- function(X, y, G, gmt=NULL, gsetX=NULL,
       res1 <- data.frame(res1, row.names=res1$pathway)
       pv1 <- res1[,"pval"]
       names(pv1) <- rownames(res1)
-    } else if(fc.method %in% c('ttest','ztest')) {
-      if(inherits(X,"dgCMatrix")) {
-        sdx <- sparseMatrixStats::rowSds(X,na.rm=TRUE)
-      } else {
-        sdx <- matrixStats::rowSds(X,na.rm=TRUE)
-      }
+    } else     if(fc.method %in% c('ttest','ztest')) {
+      ## MatrixGenerics::rowSds dispatches to the right method based on class
+      sdx <- MatrixGenerics::rowSds(X, na.rm=TRUE)
       sdx0 <- mean(sdx, na.rm=TRUE)
       zc <- fc / (0.1*sdx0 + sdx)
       if(fc.method == "ttest") {
@@ -266,7 +264,8 @@ fc_ztest <- function(fc, G, zmat=FALSE, alpha=0.5) {
   population_mean <- mean(fc, na.rm=TRUE)
   population_var <- var(fc, na.rm=TRUE)
   gfc <- (G[gg,]!=0) * fc[gg]
-  sample_var <- sparseMatrixStats::colVars(gfc) * nrow(G) / sample_size
+  ## MatrixGenerics::colVars dispatches to the right method based on class
+  sample_var <- MatrixGenerics::colVars(gfc) * nrow(G) / sample_size
   alpha <- pmin(pmax(alpha,0), 0.999) ## limit
   estim_sd <- sqrt( alpha*sample_var + (1-alpha)*population_var )
   z_statistic <- (sample_mean - population_mean) / (estim_sd / sqrt(sample_size))
@@ -450,13 +449,8 @@ gset.rankcor <- function(rnk, gset, compute.p = FALSE, use.rank = TRUE) {
   gset <- gset[gg, , drop = FALSE]
 
   if (use.rank) {
-    if(inherits(rnk1,"dgCMatrix")) {
-      ## for sparse dgCMatrix
-      ##rnk1 <- apply(rnk1, 2, base::rank, na.last = "keep", ties.method="random")
-      rnk1 <- sparseMatrixStats::colRanks(rnk1, na.last = "keep", ties.method = "random", preserveShape = TRUE)
-    } else {
-      rnk1 <- matrixStats::colRanks(rnk1, na.last = "keep", ties.method = "random", preserveShape = TRUE)
-    }
+    ## MatrixGenerics::colRanks dispatches to the right method based on class
+    rnk1 <- MatrixGenerics::colRanks(rnk1, na.last = "keep", ties.method = "random", preserveShape = TRUE)
   }
 
   ## two cases: (1) in case no missing values, just use corSparse on

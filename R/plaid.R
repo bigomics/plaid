@@ -6,8 +6,8 @@
 #' @importFrom methods as
 #' @importFrom stats ecdf
 #' @importFrom Matrix colSums colScale crossprod Diagonal rowMeans t which
-#' @importFrom matrixStats colRanks colMedians
-#' @importFrom sparseMatrixStats colRanks
+#' @importFrom matrixStats colMedians
+#' @importFrom MatrixGenerics colRanks rowSds
 NULL
 
 #' Compute PLAID single-sample enrichment score 
@@ -675,10 +675,8 @@ replaid.gsva <- function(X, matG, tau = 0, rowtf = c("z", "ecdf")[1], assay="log
 #' @return Vector of row standard deviations.
 #'
 mat.rowsds <- function(X) {
-  if(inherits(X,"CsparseMatrix"))
-    return(sparseMatrixStats::rowSds(X))
-  sdx <- matrixStats::rowSds(X)
-  return(sdx)
+  ## MatrixGenerics::rowSds dispatches to the right method based on class
+  MatrixGenerics::rowSds(X)
 }
 
 ##----------------------------------------------------------------
@@ -773,19 +771,19 @@ colranks <- function(X,
     } else {
       if(signed) {
         sign.X <- sign(X)
-        abs.rX <- Matrix::t(sparseMatrixStats::colRanks(abs(X), ties.method = ties.method))
+        abs.rX <- Matrix::t(MatrixGenerics::colRanks(abs(X), ties.method = ties.method))
         rX <- abs.rX * sign.X
       } else {
-        rX <- Matrix::t(sparseMatrixStats::colRanks(X, ties.method = ties.method))
+        rX <- Matrix::t(MatrixGenerics::colRanks(X, ties.method = ties.method))
       }
     }
   } else {
     if(signed) {
       sign.X <- sign(X)
-      abs.rX <- Matrix::t(matrixStats::colRanks(as.matrix(abs(X)), ties.method = ties.method))
+      abs.rX <- Matrix::t(MatrixGenerics::colRanks(as.matrix(abs(X)), ties.method = ties.method))
       rX <- sign.X * abs.rX
     } else {
-      rX <- Matrix::t(matrixStats::colRanks(as.matrix(X), ties.method = ties.method))
+      rX <- Matrix::t(MatrixGenerics::colRanks(as.matrix(X), ties.method = ties.method))
     }
   }
 
