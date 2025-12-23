@@ -24,6 +24,7 @@ biocViews: GeneSetEnrichment, GeneExpression, Proteomics
 Depends: R (>= 4.3.3)
 Imports: 
     Matrix,
+    MatrixGenerics,
     matrixStats,
     methods,
     parallel,

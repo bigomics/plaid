@@ -8,6 +8,8 @@
 #' @importFrom Rfast ttests
 #' @importFrom qlcMatrix corSparse
 #' @importFrom methods is
+#' @importFrom GSVA gsva gsvaParam ssgseaParam
+#' @importFrom fgsea fgsea
 NULL
 
 #' Reimplementation of dualGSEA (Bull et al., 2024) but defaults with
