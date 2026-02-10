@@ -273,7 +273,7 @@ replaid.scse <- function(X,
   }
 
   if(is.null(removeLog2))
-    removeLog2 <- min(X, na.rm = TRUE)==0 && max(X, na.rm = TRUE) < 20
+    removeLog2 <- min(X, na.rm = TRUE)==0 && max(X, na.rm=TRUE) < 20
   
   if(removeLog2)  {
     message("[replaid.scse] Converting data to linear scale (removing log2)...")
@@ -437,7 +437,7 @@ replaid.ssgsea <- function(X, matG, alpha = 0, assay="logcounts", min.genes=5, m
     ## efficiently implement original rank weighting
     rX <- rX^(1 + alpha)
   }
-  rX <- rX / max(rX) - 0.5
+  rX <- rX / max(rX, na.rm=TRUE) - 0.5
   dimnames(rX) <- dimnames(X)
   gsetX <- plaid(rX, matG, stats = "mean", normalize = TRUE)
   return(gsetX)
@@ -505,7 +505,7 @@ replaid.ucell <- function(X, matG, rmax = 1500, assay="logcounts", min.genes=5, 
   }
   
   rX <- colranks(X, ties.method = "average")
-  rX <- pmin( max(rX) - rX, rmax+1 )
+  rX <- pmin( max(rX, na.rm=TRUE) - rX, rmax+1 )
   S <- plaid(rX, matG)
   S <- 1 - S / rmax + (Matrix::colSums(matG!=0)+1)/(2*rmax)
   return(S)
@@ -573,7 +573,7 @@ replaid.aucell <- function(X, matG, aucMaxRank = NULL, assay="logcounts", min.ge
   }
   
   rX <- colranks(X, ties.method = "average")
-  ww <- 1.08*pmax((rX - (max(rX) - aucMaxRank)) / aucMaxRank, 0)
+  ww <- 1.08*pmax((rX - (max(rX, na.rm=TRUE) - aucMaxRank)) / aucMaxRank, 0)
   gsetX <- plaid(ww, matG, stats = "mean")
   return(gsetX)
 }
@@ -655,7 +655,7 @@ replaid.gsva <- function(X, matG, tau = 0, rowtf = c("z", "ecdf")[1], assay="log
   }
 
   rX <- colranks(zX, signed = TRUE, ties.method = "average")
-  rX <- rX / max(abs(rX))
+  rX <- rX / max(abs(rX), na.rm=TRUE)
   if(tau > 0) {
     ## Note: This is not exactly like original formula. Not sure how
     ## to efficiently implement original rank weighting
@@ -760,7 +760,7 @@ colranks <- function(X,
                      signed = FALSE,
                      keep.zero = FALSE,
                      ties.method = "average") {
-
+  
   if(is.null(sparse))
     sparse <- inherits(X,"CsparseMatrix")
 
