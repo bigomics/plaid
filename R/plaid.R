@@ -431,13 +431,18 @@ replaid.ssgsea <- function(X, matG, alpha = 0, assay="logcounts", min.genes=5, m
                                        min.genes=min.genes, max.genes=max.genes)
   }
   
-  rX <- colranks(X, keep.zero = TRUE, ties.method = "average")
+  rX <- colranks(X, keep.zero = FALSE, ties.method = "average")
   if(alpha != 0) {
     ## This is not exactly like original formula. Not sure how to
     ## efficiently implement original rank weighting
     rX <- rX^(1 + alpha)
   }
-  rX <- rX / max(rX, na.rm=TRUE) - 0.5
+  ## center and normalize
+  rX <- rX - mean(rX,na.rm=TRUE)
+  rX <- (rX / max(abs(rX),na.rm=TRUE))
+  ## add scaling (to match NES scale)
+  qx <- quantile(abs(rX),probs=0.99)
+  rX <- 0.9 * rX / qx  
   dimnames(rX) <- dimnames(X)
   gsetX <- plaid(rX, matG, stats = "mean", normalize = TRUE)
   return(gsetX)
@@ -654,7 +659,8 @@ replaid.gsva <- function(X, matG, tau = 0, rowtf = c("z", "ecdf")[1], assay="log
     stop("unknown row transform",rowtf)
   }
 
-  rX <- colranks(zX, signed = TRUE, ties.method = "average")
+  rX <- colranks(zX, signed = FALSE, ties.method = "average")
+  rX <- rX - mean(rX,na.rm=TRUE)
   rX <- rX / max(abs(rX), na.rm=TRUE)
   if(tau > 0) {
     ## Note: This is not exactly like original formula. Not sure how
