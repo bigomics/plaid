@@ -128,9 +128,19 @@ NULL
 .convert_geneset_to_matrix <- function(geneset, background = NULL, 
                                        min.genes = 5, max.genes = 500) {
   
-  # If already a matrix, return as-is
+  # If already a matrix, apply size filtering by column sums and return
   if (is.matrix(geneset) || inherits(geneset, "Matrix")) {
-    return(geneset)
+    gset_sizes <- Matrix::colSums(geneset != 0)
+    valid_sets <- gset_sizes >= min.genes & gset_sizes <= max.genes
+    if (sum(valid_sets) == 0) {
+      stop("[.convert_geneset_to_matrix] No gene sets passed size filters (min=",
+           min.genes, ", max=", max.genes, ")")
+    }
+    if (sum(!valid_sets) > 0) {
+      message("[.convert_geneset_to_matrix] Filtered out ", sum(!valid_sets),
+              " gene sets (size filters: ", min.genes, "-", max.genes, " genes)")
+    }
+    return(geneset[, valid_sets, drop = FALSE])
   }
   
   # Handle BiocSet objects

@@ -112,10 +112,8 @@ plaid <- function(X, matG, stats=c("mean","sum"), chunk=NULL, normalize=TRUE,
     X <- .extract_expression_matrix(X, assay=assay, log.transform=FALSE)
   }
   
-  if (inherits(matG, "BiocSet") || (is.list(matG) && !is.matrix(matG) && !inherits(matG, "Matrix"))) {
-    matG <- .convert_geneset_to_matrix(matG, background=rownames(X), 
-                                       min.genes=min.genes, max.genes=max.genes)
-  }
+  matG <- .convert_geneset_to_matrix(matG, background=rownames(X),
+                                     min.genes=min.genes, max.genes=max.genes)
 
   stats <- stats[1]
   if (NCOL(X) == 1) X <- cbind(X)
@@ -267,10 +265,8 @@ replaid.scse <- function(X,
     X <- .extract_expression_matrix(X, assay=assay, log.transform=FALSE)
   }
   
-  if (inherits(matG, "BiocSet") || (is.list(matG) && !is.matrix(matG) && !inherits(matG, "Matrix"))) {
-    matG <- .convert_geneset_to_matrix(matG, background=rownames(X), 
-                                       min.genes=min.genes, max.genes=max.genes)
-  }
+  matG <- .convert_geneset_to_matrix(matG, background=rownames(X),
+                                     min.genes=min.genes, max.genes=max.genes)
 
   if(is.null(removeLog2))
     removeLog2 <- min(X, na.rm = TRUE)==0 && max(X, na.rm=TRUE) < 20
@@ -356,10 +352,8 @@ replaid.sing <- function(X, matG, assay="logcounts", min.genes=5, max.genes=500)
     X <- .extract_expression_matrix(X, assay=assay, log.transform=FALSE)
   }
   
-  if (inherits(matG, "BiocSet") || (is.list(matG) && !is.matrix(matG) && !inherits(matG, "Matrix"))) {
-    matG <- .convert_geneset_to_matrix(matG, background=rownames(X), 
-                                       min.genes=min.genes, max.genes=max.genes)
-  }
+  matG <- .convert_geneset_to_matrix(matG, background=rownames(X),
+                                     min.genes=min.genes, max.genes=max.genes)
   
   ## the ties.method=min is important for exact replication
   rX <- colranks(X, ties.method = "min")
@@ -426,10 +420,8 @@ replaid.ssgsea <- function(X, matG, alpha = 0, assay="logcounts", min.genes=5, m
     X <- .extract_expression_matrix(X, assay=assay, log.transform=FALSE)
   }
   
-  if (inherits(matG, "BiocSet") || (is.list(matG) && !is.matrix(matG) && !inherits(matG, "Matrix"))) {
-    matG <- .convert_geneset_to_matrix(matG, background=rownames(X), 
-                                       min.genes=min.genes, max.genes=max.genes)
-  }
+  matG <- .convert_geneset_to_matrix(matG, background=rownames(X),
+                                     min.genes=min.genes, max.genes=max.genes)
   
   rX <- colranks(X, keep.zero = FALSE, ties.method = "average")
   if(alpha != 0) {
@@ -504,10 +496,8 @@ replaid.ucell <- function(X, matG, rmax = 1500, assay="logcounts", min.genes=5, 
     X <- .extract_expression_matrix(X, assay=assay, log.transform=FALSE)
   }
   
-  if (inherits(matG, "BiocSet") || (is.list(matG) && !is.matrix(matG) && !inherits(matG, "Matrix"))) {
-    matG <- .convert_geneset_to_matrix(matG, background=rownames(X), 
-                                       min.genes=min.genes, max.genes=max.genes)
-  }
+  matG <- .convert_geneset_to_matrix(matG, background=rownames(X),
+                                     min.genes=min.genes, max.genes=max.genes)
   
   rX <- colranks(X, ties.method = "average")
   rX <- pmin( max(rX, na.rm=TRUE) - rX, rmax+1 )
@@ -568,10 +558,8 @@ replaid.aucell <- function(X, matG, aucMaxRank = NULL, assay="logcounts", min.ge
     X <- .extract_expression_matrix(X, assay=assay, log.transform=FALSE)
   }
   
-  if (inherits(matG, "BiocSet") || (is.list(matG) && !is.matrix(matG) && !inherits(matG, "Matrix"))) {
-    matG <- .convert_geneset_to_matrix(matG, background=rownames(X), 
-                                       min.genes=min.genes, max.genes=max.genes)
-  }
+  matG <- .convert_geneset_to_matrix(matG, background=rownames(X),
+                                     min.genes=min.genes, max.genes=max.genes)
   
   if (is.null(aucMaxRank)) {
     aucMaxRank <- ceiling(0.05*nrow(X))
@@ -642,10 +630,8 @@ replaid.gsva <- function(X, matG, tau = 0, rowtf = c("z", "ecdf")[1], assay="log
     X <- .extract_expression_matrix(X, assay=assay, log.transform=FALSE)
   }
   
-  if (inherits(matG, "BiocSet") || (is.list(matG) && !is.matrix(matG) && !inherits(matG, "Matrix"))) {
-    matG <- .convert_geneset_to_matrix(matG, background=rownames(X), 
-                                       min.genes=min.genes, max.genes=max.genes)
-  }
+  matG <- .convert_geneset_to_matrix(matG, background=rownames(X),
+                                     min.genes=min.genes, max.genes=max.genes)
   
   rowtf <- rowtf[1]
 
