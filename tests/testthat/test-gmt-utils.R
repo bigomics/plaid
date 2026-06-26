@@ -91,25 +91,6 @@ test_that("gmt2mat handles custom background genes", {
   expect_true(all(rownames(mat) %in% bg))
 })
 
-test_that("gmt2mat handles multicore parameter", {
-  gmt <- list(
-    "Pathway1" = c("GENE1", "GENE2"),
-    "Pathway2" = c("GENE3", "GENE4")
-  )
-  
-  # With multicore
-  mat1 <- gmt2mat(gmt, use.multicore = TRUE)
-  
-  # Without multicore
-  mat2 <- gmt2mat(gmt, use.multicore = FALSE)
-  
-  # Results should be identical
-  expect_equal(dim(mat1), dim(mat2))
-  expect_equal(rownames(mat1), rownames(mat2))
-  expect_equal(colnames(mat1), colnames(mat2))
-  expect_equal(as.matrix(mat1), as.matrix(mat2))
-})
-
 test_that("gmt2mat handles unnamed GMT lists", {
   # Note: When GMT lists are unnamed, the function auto-generates names
   # However, there's an edge case where empty lists cause issues

@@ -3,7 +3,7 @@
 
 #' @importFrom utils head read.csv
 #' @importFrom Matrix Matrix rowSums which
-#' @importFrom parallel mclapply
+#' @importFrom collapse fduplicated fmatch fsubset funique qtable vec vlengths whichNA whichv
 NULL
 
 #' Convert GMT to Binary Matrix
@@ -17,7 +17,7 @@ NULL
 #' @param ntop Number of top genes to consider for each gene set. Default = -1 to include all genes.
 #' @param sparse Logical: create a sparse matrix. Default `TRUE`. If `FALSE` creates a dense matrix.
 #' @param bg Character vector of background gene set. Default `NULL` to consider all unique genes.
-#' @param use.multicore Logical: use parallel processing ('parallel' R package). Default `TRUE`.
+#' @param use.multicore Logical: use parallel processing ('parallel' R package). Default `FALSE`. Deprecated.
 #'
 #' @export
 #'
@@ -41,44 +41,70 @@ NULL
 #' print(mat_dense)
 gmt2mat <- function(gmt,
                     max.genes = -1,
-                    ntop = -1, sparse = TRUE,
+                    ntop = -1,
+                    sparse = TRUE,
                     bg = NULL,
-                    use.multicore = TRUE) {
+                    use.multicore = FALSE) {
 
-  gmt <- gmt[order(-vapply(gmt, length, integer(1)))]
+  if (use.multicore) {
+    warning(
+      "`use.multicore` is deprecated and will be removed in a future version."
+    )
+  }
+
+  gmt <- gmt[order(vlengths(gmt), decreasing = TRUE)]
   gmt <- gmt[!duplicated(names(gmt))]
   if (ntop > 0) gmt <- lapply(gmt, utils::head, n = ntop)
-  
-  if (is.null(names(gmt))) names(gmt) <- paste("gmt.", seq_along(gmt), sep = "")
+  if (is.null(names(gmt))) names(gmt) <- paste0("gmt.", seq_along(gmt))
+
+  genes <- vec(gmt)
   if (is.null(bg)) {
-    bg <- names(sort(table(unlist(gmt)), decreasing = TRUE))
+    bg <- names(sort(qtable(genes), decreasing = TRUE))
+  } else {
+    bg <- funique(bg)
   }
   
   if (max.genes < 0) max.genes <- length(bg)
-  gg <- bg
-  gg <- Matrix::head(bg, n = max.genes)
-  ##gmt <- lapply(gmt, function(s) intersect(gg, s))
-  kk <- unique(names(gmt))
+  gg <- utils::head(bg, n = max.genes)
+  kk <- names(gmt)
+
+  NR <- length(gg)
+  NC <- length(kk)
+  idx_row <- fmatch(genes, gg)
+  idx_col <- rep.int(seq_len(NC), vlengths(gmt))
+
+  idx_not_NA <- whichNA(idx_row, invert = TRUE)
+  if (length(idx_not_NA) != length(idx_row)) {
+    idx_row <- fsubset(idx_row, idx_not_NA)
+    idx_col <- fsubset(idx_col, idx_not_NA)
+  }
+
+  # Matrices are in column-major order
+  idx <- NR * (idx_col - 1L) + idx_row
+
+  # Identify duplicates
+  idx_not_dup <- whichv(fduplicated(idx, all = FALSE), FALSE)
+  if (length(idx_not_dup) != length(idx)) {
+    idx_row <- fsubset(idx_row, idx_not_dup)
+    idx_col <- fsubset(idx_col, idx_not_dup)
+    idx <- fsubset(idx, idx_not_dup)
+  }
+
   if (sparse) {
-    D <- Matrix::Matrix(0, nrow = length(gg), ncol = length(kk), sparse = TRUE)
+    D <- Matrix::sparseMatrix(
+      i = idx_row,
+      j = idx_col,
+      x = 1,
+      dims = c(NR, NC),
+      check = FALSE,
+      use.last.ij = FALSE
+    )
   } else {
-    D <- matrix(0, nrow = length(gg), ncol = length(kk))
+    D <- matrix(0, nrow = NR, ncol = NC)
+    D[idx] <- 1
   }
   rownames(D) <- gg
   colnames(D) <- kk
-
-  if (use.multicore) {
-    idx <- parallel::mclapply(gmt, function(s) match(s, gg))
-  } else {
-    idx <- lapply(gmt, function(s) match(s, gg))
-  }
-  idx <- lapply(idx, function(x) x[!is.na(x)])
-  idx[vapply(idx, length, integer(1)) == 0] <- 0
-  idx <- lapply(seq_along(idx), function(i) rbind(idx[[i]], i))
-  idx <- matrix(unlist(idx[]), byrow = TRUE, ncol = 2)
-  idx <- idx[!is.na(idx[, 1]), ]
-  idx <- idx[idx[, 1] > 0, ]
-  D[idx] <- 1
   D <- D[order(-Matrix::rowSums(D != 0, na.rm = TRUE)), ,drop=FALSE]
 
   return(D)

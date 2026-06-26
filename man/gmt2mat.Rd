@@ -10,7 +10,7 @@ gmt2mat(
   ntop = -1,
   sparse = TRUE,
   bg = NULL,
-  use.multicore = TRUE
+  use.multicore = FALSE
 )
 }
 \arguments{
@@ -24,7 +24,7 @@ gmt2mat(
 
 \item{bg}{Character vector of background gene set. Default \code{NULL} to consider all unique genes.}
 
-\item{use.multicore}{Logical: use parallel processing ('parallel' R package). Default \code{TRUE}.}
+\item{use.multicore}{Logical: use parallel processing ('parallel' R package). Default \code{FALSE}. Deprecated.}
 }
 \value{
 A binary matrix representing the presence or absence of genes in each gene set.
