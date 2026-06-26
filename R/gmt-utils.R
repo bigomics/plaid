@@ -2,8 +2,8 @@
 ## Copyright (c) 2018-2025 BigOmics Analytics SA. All rights reserved.
 
 #' @importFrom utils head read.csv
-#' @importFrom Matrix Matrix rowSums which
-#' @importFrom collapse fduplicated fmatch fsubset funique qtable vec vlengths whichNA whichv
+#' @importFrom Matrix sparseMatrix rowSums which
+#' @importFrom collapse fmatch fsubset funique qtable vec vlengths whichNA
 NULL
 
 #' Convert GMT to Binary Matrix
@@ -56,6 +56,9 @@ gmt2mat <- function(gmt,
   gmt <- gmt[!duplicated(names(gmt))]
   if (ntop > 0) gmt <- lapply(gmt, utils::head, n = ntop)
   if (is.null(names(gmt))) names(gmt) <- paste0("gmt.", seq_along(gmt))
+  
+  # Remove duplicates (necessary for use.last.ij = FALSE)
+  gmt <- lapply(gmt, function(x) funique(x, method = "hash"))
 
   genes <- vec(gmt)
   if (is.null(bg)) {
@@ -79,17 +82,6 @@ gmt2mat <- function(gmt,
     idx_col <- fsubset(idx_col, idx_not_NA)
   }
 
-  # Matrices are in column-major order
-  idx <- NR * (idx_col - 1L) + idx_row
-
-  # Identify duplicates
-  idx_not_dup <- whichv(fduplicated(idx, all = FALSE), FALSE)
-  if (length(idx_not_dup) != length(idx)) {
-    idx_row <- fsubset(idx_row, idx_not_dup)
-    idx_col <- fsubset(idx_col, idx_not_dup)
-    idx <- fsubset(idx, idx_not_dup)
-  }
-
   if (sparse) {
     D <- Matrix::sparseMatrix(
       i = idx_row,
@@ -101,6 +93,8 @@ gmt2mat <- function(gmt,
     )
   } else {
     D <- matrix(0, nrow = NR, ncol = NC)
+    # Matrices are in column-major order
+    idx <- NR * (idx_col - 1L) + idx_row
     D[idx] <- 1
   }
   rownames(D) <- gg
