@@ -51,29 +51,30 @@ gmt2mat <- function(gmt,
       "`use.multicore` is deprecated and will be removed in a future version."
     )
   }
-
+  
+  # Remove duplicates (necessary for accurate qtable and use.last.ij = FALSE)
+  gmt <- lapply(gmt, function(x) funique(x, method = "hash"))
   gmt <- gmt[order(vlengths(gmt), decreasing = TRUE)]
   gmt <- gmt[!duplicated(names(gmt))]
   if (ntop > 0) gmt <- lapply(gmt, utils::head, n = ntop)
   if (is.null(names(gmt))) names(gmt) <- paste0("gmt.", seq_along(gmt))
-  
-  # Remove duplicates (necessary for use.last.ij = FALSE)
-  gmt <- lapply(gmt, function(x) funique(x, method = "hash"))
 
   genes <- vec(gmt)
+  # This prevents having to reorder matrix rows by their sums at the end
+  temp_bg <- names(sort(qtable(genes), decreasing = TRUE))
   if (is.null(bg)) {
-    bg <- names(sort(qtable(genes), decreasing = TRUE))
+    bg <- temp_bg
   } else {
-    bg <- funique(bg)
+    bg <- funique(c(intersect(temp_bg, bg), bg))
   }
   
-  if (max.genes < 0) max.genes <- length(bg)
-  gg <- utils::head(bg, n = max.genes)
-  kk <- names(gmt)
+  if (max.genes >= 0L) {
+    bg <- utils::head(bg, n = max.genes)
+  }
 
-  NR <- length(gg)
-  NC <- length(kk)
-  idx_row <- fmatch(genes, gg)
+  NR <- length(bg)
+  NC <- length(gmt)
+  idx_row <- fmatch(genes, bg)
   idx_col <- rep.int(seq_len(NC), vlengths(gmt))
 
   idx_not_NA <- whichNA(idx_row, invert = TRUE)
@@ -97,9 +98,8 @@ gmt2mat <- function(gmt,
     idx <- NR * (idx_col - 1L) + idx_row
     D[idx] <- 1
   }
-  rownames(D) <- gg
-  colnames(D) <- kk
-  D <- D[order(-Matrix::rowSums(D != 0, na.rm = TRUE)), ,drop=FALSE]
+  rownames(D) <- bg
+  colnames(D) <- names(gmt)
 
   return(D)
 
