@@ -4,8 +4,7 @@
 
 #' @importFrom stats p.adjust pt pchisq qnorm pnorm
 #' @importFrom Matrix rowMeans colSums crossprod t colScale
-#' @importFrom MatrixGenerics rowSds colVars colRanks
-#' @importFrom Rfast ttests
+#' @importFrom MatrixGenerics rowSds rowVars colVars colRanks
 #' @importFrom qlcMatrix corSparse
 #' @importFrom methods is
 #' @importFrom GSVA gsva gsvaParam ssgseaParam
@@ -323,10 +322,19 @@ gset_ttest <- function(gsetX, y) {
   gsetX <- gsetX[,ii]
   y <- y[ii]
   if(!all(unique(y) %in% c(0,1))) stop("[gset_ttest] elements of y must be 0 or 1")
-  res  <- Rfast::ttests(Matrix::t(gsetX), ina=y+1)
+  ## ponytail: vectorized Welch t-test in base R, replaces Rfast::ttests
+  x1 <- gsetX[, y==1, drop=FALSE]
+  x0 <- gsetX[, y==0, drop=FALSE]
+  n1 <- ncol(x1)
+  n0 <- ncol(x0)
+  v1 <- MatrixGenerics::rowVars(x1) / n1
+  v0 <- MatrixGenerics::rowVars(x0) / n0
+  diff <- Matrix::rowMeans(x1) - Matrix::rowMeans(x0)
+  stat <- diff / sqrt(v1 + v0)
+  dof  <- (v1 + v0)^2 / (v1^2/(n1-1) + v0^2/(n0-1))
+  pvalue <- 2 * stats::pt(abs(stat), df=dof, lower.tail=FALSE)
+  res <- cbind(diff=diff, stat=stat, pvalue=pvalue, dof=dof)
   rownames(res) <- rownames(gsetX)
-  diff <- rowMeans(gsetX[,y==1]) - rowMeans(gsetX[,y==0])
-  res <- cbind( diff=diff, res)
   return(res)
 }
 

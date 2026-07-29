@@ -29,7 +29,6 @@ Imports:
     matrixStats,
     methods,
     parallel,
-    Rfast,
     qlcMatrix,
     GSVA,
     fgsea,
