@@ -13,7 +13,6 @@ URL: https://github.com/bigomics/plaid, https://bigomics.github.io/plaid/
 BugReports: https://github.com/bigomics/plaid/issues
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.3.3
 Suggests: 
     BiocStyle,
     knitr,
@@ -28,7 +27,8 @@ Imports:
     MatrixGenerics,
     matrixStats,
     methods,
-    parallel,
+    collapse,
+    Rfast,
     qlcMatrix,
     GSVA,
     fgsea,
@@ -37,3 +37,4 @@ Imports:
     stats,
     utils
 VignetteBuilder: knitr
+Config/roxygen2/version: 8.0.0
