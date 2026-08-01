@@ -18,7 +18,6 @@ use_test("plaid")
 
 ## List package dependencies
 use_package("Matrix")
-use_package("Rfast")
 use_package("matrixStats")
 use_package("methods")
 use_package("sparseMatrixStats")
