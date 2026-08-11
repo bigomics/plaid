@@ -147,15 +147,30 @@ test_that(".extract_expression_matrix errors on unsupported types", {
 # =============================================================================
 
 test_that(".convert_geneset_to_matrix handles matrices directly", {
-  # Create test matrix
-  mat <- matrix(c(1, 0, 1, 0, 0, 1), nrow = 3, ncol = 2)
-  rownames(mat) <- paste0("Gene", 1:3)
+  # Create test matrix, both pathways pass the default size filter
+  mat <- matrix(1, nrow = 6, ncol = 2)
+  rownames(mat) <- paste0("Gene", 1:6)
   colnames(mat) <- paste0("Pathway", 1:2)
-  
+
   # Should return matrix as-is
   result <- plaid:::.convert_geneset_to_matrix(mat)
-  
+
   expect_identical(result, mat)
+})
+
+test_that(".convert_geneset_to_matrix filters matrices by gene set size", {
+  mat <- matrix(0, nrow = 6, ncol = 2)
+  rownames(mat) <- paste0("Gene", 1:6)
+  colnames(mat) <- paste0("Pathway", 1:2)
+  mat[, 1] <- 1        # 6 genes, kept
+  mat[1:2, 2] <- 1     # 2 genes, dropped
+
+  expect_message(
+    result <- plaid:::.convert_geneset_to_matrix(mat),
+    "Filtered out"
+  )
+
+  expect_equal(colnames(result), "Pathway1")
 })
 
 test_that(".convert_geneset_to_matrix handles GMT lists", {

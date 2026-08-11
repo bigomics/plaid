@@ -28,7 +28,6 @@ Imports:
     matrixStats,
     methods,
     collapse,
-    Rfast,
     qlcMatrix,
     GSVA,
     fgsea,

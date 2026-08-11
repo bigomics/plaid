@@ -4,7 +4,7 @@
 ##
 
 #' @importFrom methods as
-#' @importFrom stats ecdf
+#' @importFrom stats ecdf quantile
 #' @importFrom Matrix colSums colScale crossprod Diagonal rowMeans t which
 #' @importFrom matrixStats colMedians
 #' @importFrom MatrixGenerics colRanks rowSds
@@ -721,7 +721,7 @@ normalize_medians <- function(x, ignore.zero = NULL) {
 #' Compute columnwise ranks of matrix
 #'
 #' Computes columnwise rank of matrix. Can be sparse. Tries to call
-#' optimized functions from Rfast or matrixStats.
+#' optimized functions from matrixStats.
 #'
 #' @param X Input matrix
 #' @param sparse Logical indicating to use sparse methods

@@ -28,7 +28,7 @@ Matrix of columnwise ranks with same dimensions as input.
 }
 \description{
 Computes columnwise rank of matrix. Can be sparse. Tries to call
-optimized functions from Rfast or matrixStats.
+optimized functions from matrixStats.
 }
 \examples{
 # Create example matrix

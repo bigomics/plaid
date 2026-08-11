@@ -10,7 +10,11 @@
 # Helper function to create test data
 create_test_data <- function(n_genes = 100, n_samples = 10, n_pathways = 5) {
   set.seed(123)
-  
+
+  ## make sure every pathway fits in the gene universe, otherwise the
+  ## last ones end up (near) empty and get dropped by the size filter
+  n_genes <- max(n_genes, (n_pathways - 1) * 15 + 20)
+
   # Create expression matrix
   X <- matrix(rnorm(n_genes * n_samples), nrow = n_genes, ncol = n_samples)
   rownames(X) <- paste0("GENE", 1:n_genes)
