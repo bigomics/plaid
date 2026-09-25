@@ -59,6 +59,15 @@ PLAID is the main single-sample gene set scoring algorithm in OmicsPlayground, o
 Bioinformatics platform at [BigOmics](https://bigomics.ch). In OmicsPlayground, you 
 can perform PLAID without coding needs.
 
+### Seurat Integration
+
+PLAID is integrated into popular Seurat-based workflows through the following packages:
+
+- [**scGSVA**](https://github.com/immunogenomics/scGSVA) - Provides Seurat wrapper for PLAID
+- [**ESCAPE**](https://github.com/borchlab/escape) - Provides Seurat wrapper for PLAID
+
+These packages enable seamless integration of PLAID into Seurat-based single-cell RNA-seq analysis pipelines.
+
 ## References
 
 For more technical details please refer to our papers. Please cite us when you use
