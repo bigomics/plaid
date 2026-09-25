@@ -63,7 +63,7 @@ can perform PLAID without coding needs.
 
 PLAID is integrated into popular Seurat-based workflows through the following packages:
 
-- [**scGSVA**](https://github.com/immunogenomics/scGSVA) - Provides Seurat wrapper for PLAID
+- [**scGSVA**](https://github.com/guokai8/scGSVA) - Provides Seurat wrapper for PLAID
 - [**ESCAPE**](https://github.com/borchlab/escape) - Provides Seurat wrapper for PLAID
 
 These packages enable seamless integration of PLAID into Seurat-based single-cell RNA-seq analysis pipelines.
